@@ -1,0 +1,30 @@
+x < y
+
+# when the parser parses it as this it is actually correct.. checked against
+# gcc parser as well
+#
+# on second thought it makes sense that it would be parsed this way
+# (== (! (grouping (+ (+ (lit a) (lit b)) (* (lit c) (lit d))))) (< (lit 2) (lit 4)))
+!(a + b + c * d) == 2 < 4
+22 == 4
+
+# not actually valid code
+(grouptest)
+
+fn test()
+{
+    # test expressions (can't test ++ or -- until var statements implemented)
+    
+    var i8 a        = 2
+    var i32 b       = 45
+    var bool test   = a < b
+    
+    # expr test
+    a + b
+    
+    # - should eventually error when we add the type checker
+    # - well maybe not type checker but some sort of checker
+    # - assignment checker maybe?
+    # - maybe a parse error (probably)
+    "a string" = 2
+}
