@@ -32,12 +32,7 @@ void        jms_str_append_s(jms_str* self, jms_str* thingToAppend);
  * @brief append c string - appends cStr to the end of self. cStr is
  *  -not- managed by this function.
  */
-void        jms_str_append_cs(jms_str* self, char* cStr);
-
-/**
- * @brief append integer - appends thingToAppend to the end of self
- */
-void        jms_str_append_i(jms_str* self, int32_t thingToAppend);
+void        jms_str_append_cs(jms_str* self, const char* cStr);
 
 /**
  * @brief append char - appends thingToAppend to the end of self

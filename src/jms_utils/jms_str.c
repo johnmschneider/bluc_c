@@ -75,18 +75,9 @@ void jms_str_append_s(jms_str* self, jms_str* thingToAppend)
     self->length = self->length + thingToAppend->length;
 }
 
-void jms_str_append_cs(jms_str* self, char* cStr)
+void jms_str_append_cs(jms_str* self, const char* cStr)
 {
-    size_t cStrLen = strlen(cStr); //0;
-    // while (true)
-    // {
-    //     if (cStr[cStrLen] == '\0')
-    //     {
-    //         break;
-    //     }
-
-    //     cStrLen++;
-    // }
+    size_t cStrLen = strlen(cStr);
 
     // add 1 for null term
     char* newVal = malloc(self->length + cStrLen + 1);
@@ -104,12 +95,6 @@ void jms_str_append_cs(jms_str* self, char* cStr)
     free(self->value);
     self->value     = newVal;
     self->length    += cStrLen;
-}
-
-// TODO - implement
-void jms_str_append_i(jms_str* self, int32_t thingToAppend)
-{
-
 }
 
 void jms_str_append_ch(jms_str* self, char thingToAppend)
@@ -141,11 +126,14 @@ char jms_str_charAt(jms_str* self, int32_t index)
 
 void jms_str_set_cStr(jms_str* self, const char* newValue)
 {
-    int32_t length  = strlen(newValue);
-    self->length    = length;
+    size_t length  = strlen(newValue);
+    self->length   = (int32_t) length;
 
-    char* newMemoryLocation = realloc (self->value, length * sizeof(char));
+    // add 1 for null terminator
+    char* newMemoryLocation = realloc (self->value, (length + 1) * sizeof(char));
     self->value = newMemoryLocation;
-
+    
+    // add 1 for null terminator
+    memset(self->value, '\0', sizeof(char) * (length + 1));
     strncpy(self->value, newValue, (int32_t) length);
 }
