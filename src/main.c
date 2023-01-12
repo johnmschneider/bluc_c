@@ -6,7 +6,7 @@
 #include "jms_utils/jms_str.h"
 
 #define JMS_UNIT_TESTS_ON
-#define JMS_DEBUG_FILENAME "test.bluc"
+#define JMS_DEBUG_FILENAME "src/test.bluc"
 
 int main(int argc, char* argv[])
 {
@@ -14,6 +14,7 @@ printf("main: before jms_unitTests_run\n");
 #ifdef JMS_UNIT_TESTS_ON
     jms_unitTests_run();
 #endif
+fflush(stdout);
 printf("main: after jms_unitTests_run\n");
 
 
@@ -38,14 +39,21 @@ printf("main: after lexFile\n");
     //printf("main.c/main: elemCount(lexedTokens) == %zu",
     //    jms_vec_elemCount(lexedTokens));
 
-printf("main: before print loop\n");
-    for (size_t i = 0; i < jms_vec_elemCount(lexedTokens); i++)
+    if (lexedTokens != NULL)
     {
-        jms_str* elem = jms_vec_get(lexedTokens, i);
-        char* cStr = jms_str_cStr(elem);
-        printf("main: token %zu: %s\n", i, cStr);
+printf("main: before print loop\n");
+        for (size_t i = 0; i < jms_vec_elemCount(lexedTokens); i++)
+        {
+            jms_str* elem = jms_vec_get(lexedTokens, i);
+            char* cStr = jms_str_cStr(elem);
+            printf("main: token %zu: %s\n", i, cStr);
+        }
+
+        jms_vec_del(lexedTokens);
     }
 printf("main: after print loop\n");
+    
+    jms_lex_del(lexer);
 
     return 0;
 }

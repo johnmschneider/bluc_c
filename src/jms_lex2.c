@@ -207,6 +207,7 @@ static jms_vector* jms_lexAllLines(jms_lexer* self, jms_str* source_string)
         }
     }
 
+    jms_str_del(token_str);
     return tokens;
 }
 
