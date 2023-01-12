@@ -58,6 +58,11 @@ int32_t jms_vec_elemCount(jms_vector* self)
     return self->lastElemIndex + 1;
 }
 
+int32_t jms_vec_capacity(jms_vector* self)
+{
+    return self->maxElems;
+}
+
 static void jms_vec_allocMoreSpace(jms_vector* self)
 {
     int32_t newestElem = self->lastElemIndex;

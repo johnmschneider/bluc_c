@@ -13,6 +13,12 @@ void        jms_vec_del     (jms_vector* self);
  * Returns how many elements are currently being stored.
  */
 int32_t     jms_vec_elemCount   (jms_vector* self);
+
+/**
+ * Returns the maximum number of elements that can be stored
+ *  with the currently allocated memory for the vector.
+ */
+int32_t     jms_vec_capacity    (jms_vector* self);
 void        jms_vec_add         (jms_vector* self, void* element);
 void*       jms_vec_get         (jms_vector* self, int32_t index);
 

@@ -2,6 +2,6 @@
 #define JMS_UNITTESTS_VECTOR_H
 #include "jms_unitTests.h"
 
-void jms_unitTest_vector(void);
+void jms_ut_vector(void);
 
 #endif

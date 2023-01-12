@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include "jms_unitTests.h"
-#include "jms_unitTests_vector.h"
+#include "jms_ut_vector.h"
 #include "jms_ut_array.h"
 #include "jms_ut_str.h"
 
@@ -68,7 +68,7 @@ void jms_unitTests_run(void)
 {
     printf("\n====\njms_unitTests_run: starting unit tests...\n====\n");
 
-    jms_unitTest_vector();
+    jms_ut_vector();
     jms_unitTests_nextUnit();
 
     jms_ut_array();
