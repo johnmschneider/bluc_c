@@ -4,15 +4,17 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include "jms_ptr_annotations.h"
 
 struct jms_str;
 typedef struct jms_str jms_str;
 
 /**
- * @brief creates a *deep copy* of string *source* and
- *  wraps it around the string class
+ * @brief creates a *deep copy* of string *initialValue* and
+ *  and manages the pointer for the deep copy.
  */
-jms_str*    jms_str_init(const char* source);
+jms_str*    jms_str_init(
+                JMS_BORROWED_PTR(const char) initialValue);
 void        jms_str_del(jms_str* self);
 
 
@@ -55,12 +57,21 @@ bool        jms_str_eq_s(jms_str* self, jms_str* other);
  */
 bool        jms_str_eq_cStr(jms_str* self, const char* other);
 
-
+/**
+ * @brief returns the char at the specified index.
+ */
 char        jms_str_charAt(jms_str* self, int32_t index);
 
 /**
  * @brief resizes the string and sets the value to newValue
  */
 void        jms_str_set_cStr(jms_str* self, const char* newValue);
+
+/**
+ * @brief Returns whether the string is an empty string (i.e., == "")
+ */
+bool        jms_str_isEmpty(jms_str* self);
+
+bool        jms_str_isWhitespace(jms_str* self);
 
 #endif

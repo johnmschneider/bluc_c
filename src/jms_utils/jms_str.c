@@ -1,9 +1,12 @@
+#include <ctype.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
 
 #include "jms_str.h"
 #include "jms_strUtil.h"
+#include "jms_ptr_annotations.h"
 
 struct jms_str
 {
@@ -12,18 +15,18 @@ struct jms_str
      * 
      *  null terminator will be added in calls to .cStr()
      */
-    size_t  length;
-    char*   value;
+    size_t length;
+    JMS_OWNED_PTR(char)   value;
 };
 
-jms_str* jms_str_init(const char* source)
+jms_str* jms_str_init(JMS_BORROWED_PTR(const char) initialValue)
 {
     jms_str* self = malloc(sizeof(jms_str));
 
     size_t len = 0;
     while (true)
     {
-        if (source[len] == '\0')
+        if (initialValue[len] == '\0')
         {
             break;
         }
@@ -36,7 +39,7 @@ jms_str* jms_str_init(const char* source)
     // len + 1 for null term
     self->value = malloc((len + 1) * sizeof(char));
 
-    strcpy(self->value, source);
+    strcpy(self->value, initialValue);
 
     return self;
 }
@@ -136,4 +139,26 @@ void jms_str_set_cStr(jms_str* self, const char* newValue)
     // add 1 for null terminator
     memset(self->value, '\0', sizeof(char) * (length + 1));
     strncpy(self->value, newValue, (int32_t) length);
+}
+
+bool jms_str_isEmpty(jms_str *self)
+{
+    return self->length == 0;
+}
+
+bool jms_str_isWhitespace(jms_str *self)
+{
+    bool onlySpacesFoundSoFar = true;
+
+    for (int32_t i = 0; i < jms_str_len(self); i++)
+    {
+        char curChar = jms_str_charAt(self, i);
+        if (!isspace(curChar))
+        {
+            onlySpacesFoundSoFar = false;
+            break;
+        }
+    }
+
+    return onlySpacesFoundSoFar;
 }

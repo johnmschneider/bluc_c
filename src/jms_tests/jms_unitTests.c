@@ -3,9 +3,12 @@
 #include <stdio.h>
 #include <stdint.h>
 #include "jms_unitTests.h"
+#include "jms_ut_cremover.h"
 #include "jms_ut_vector.h"
 #include "jms_ut_array.h"
 #include "jms_ut_str.h"
+#include "jms_ut_token.h"
+#include "jms_ut_cremover.h"
 
 /**
  * @brief how many assertions have failed. if JMS_ASSERT_FAIL was
@@ -75,6 +78,12 @@ void jms_unitTests_run(void)
     jms_unitTests_nextUnit();
 
     jms_ut_str();
+    jms_unitTests_nextUnit();
+
+    jms_ut_token();
+    jms_unitTests_nextUnit();
+    
+    jms_ut_comments_remover();
     jms_unitTests_nextUnit();
 
     printf("\n====\njms_unitTests_run: unit tests finished\n");
