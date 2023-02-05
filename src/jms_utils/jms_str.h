@@ -45,7 +45,7 @@ void        jms_str_append_ch(jms_str* self, char thingToAppend);
  * @brief returns the raw c string pointer for this string. this pointer
  *  is managed by the string class, do not free.
  */
-char*       jms_str_cStr(jms_str* self);
+JMS_BORROWED_PTR(char)  jms_str_cStr(jms_str* self);
 
 /**
  * @brief returns whether the values of the two strings are the same

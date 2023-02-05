@@ -51,9 +51,17 @@ printf("main: before print loop\n");
 
         jms_vec_del(lexedTokens);
     }
+    else
+    {
+        fprintf(stderr, "[%s]: Error lexing tokens\n",
+            __func__);
+    }
 printf("main: after print loop\n");
     
     jms_lex_del(lexer);
 
+    fflush(stdout);
+    fflush(stderr);
+    
     return 0;
 }

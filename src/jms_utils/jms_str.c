@@ -107,7 +107,7 @@ void jms_str_append_ch(jms_str* self, char thingToAppend)
     jms_str_append_cs(self, cStr);
 }
 
-char* jms_str_cStr(jms_str* self)
+JMS_BORROWED_PTR(char) jms_str_cStr(jms_str* self)
 {
     return self->value;
 }
@@ -133,7 +133,7 @@ void jms_str_set_cStr(jms_str* self, const char* newValue)
     self->length   = (int32_t) length;
 
     // add 1 for null terminator
-    char* newMemoryLocation = realloc (self->value, (length + 1) * sizeof(char));
+    char* newMemoryLocation = realloc(self->value, (length + 1) * sizeof(char));
     self->value = newMemoryLocation;
     
     // add 1 for null terminator

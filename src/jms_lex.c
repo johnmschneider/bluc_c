@@ -6,6 +6,7 @@
 #include <ctype.h>
 #include "jms_lex.h"
 #include "jms_token.h"
+#include "jms_utils/jms_freader.h"
 #include "jms_utils/jms_vector.h"
 #include "jms_utils/jms_str.h"
 #include "jms_utils/jms_ptr_annotations.h"
@@ -54,54 +55,37 @@ static void jms_lex_appendIfNotWhitespace(
     }
 }
 
-static jms_vector* jms_lex(jms_lexer* self)
+static JMS_XFER_PTR(jms_vector) jms_lex(jms_lexer* self)
 {
     // TODO - finish implementing
-    linesOfFile = //
-    int32_t lineNum = 1;
+    //linesOfFile = //
+    //int32_t lineNum = 1;
     
     jms_vector* lexedTokens = jms_vec_init(sizeof(jms_str*));
 
     return NULL;
 }
 
-jms_vector* jms_lexFile(jms_lexer* self, const char* filePath)
+JMS_XFER_PTR(jms_vector) jms_lexFile(jms_lexer* self, const char* filePath)
 {
-    jms_vector* result  = NULL;
-    FILE* file          = fopen(filePath, "r");
-    char* buffer;
+    JMS_XFER_PTR(jms_vector)
+                    lexedTokens;
+    jms_freader*    reader      = jms_freader_init(filePath);
 
-    if (file == NULL)
+    self->fileContents = jms_freader_readLines(reader);
+
+    if (self->fileContents == NULL)
     {
-        fprintf(stderr, "Error opening input file \"%s\". Please check that "
-            "the path and file exist.", filePath);
+        fprintf(stderr, "[%s]: Error reading input file \"%s\". Please check that "
+            "the path and file exist.\n", __FUNCTION__, filePath);
+        lexedTokens = NULL;
     }
     else
     {
-        // TODO - refactor this all out to a jms_freader class
-        char code;
-
-        // c stdlib uses long, not int64_t :(
-        long bytesInFile;
-        
-        
-        self->curCharIndex = -1;
-        fseek(file, 0L, SEEK_END);
-        bytesInFile = ftell(file);
-
-        fseek(file, 0L, SEEK_SET);	
-        buffer = (char*) calloc(bytesInFile, sizeof(char));
-
-        fread(buffer, sizeof(char), bytesInFile, file);
-        fclose(file);
-
-        jms_str_set_cStr(self->fileContents, buffer);
-
-        printf("\njms_lex2.jms_lexFile: fileContents == \n>[\n%s\n]<\n\n",
-            jms_str_cStr(self->fileContents));
-
-        result = jms_lex(self);
+        lexedTokens = jms_lex(self);
     }
 
-    return result;
+    jms_freader_del(reader);
+    
+    return lexedTokens;
 }
