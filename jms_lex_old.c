@@ -27,7 +27,7 @@ static void lexLine(jms_vector* lexedTokens, char* lineBuffer)
 
             if (!lastCharWasSpace && i != 0)
             {
-                char* trimmedStrOnHeap = jms_substrToHeap(tokenBuffer, 
+                char* trimmedStrOnHeap = jms_strUtil_substrToHeap(tokenBuffer, 
                     tokStart, i - 1);
                 jms_vec_add(lexedTokens, trimmedStrOnHeap);
 
@@ -46,7 +46,7 @@ static void lexLine(jms_vector* lexedTokens, char* lineBuffer)
     if (!lastCharWasSpace && i != 0)
     {
         // add the very last token
-        char* trimmedStrOnHeap = jms_substrToHeap(tokenBuffer, 
+        char* trimmedStrOnHeap = jms_strUtil_substrToHeap(tokenBuffer, 
                 tokStart, i - 1);
             jms_vec_add(lexedTokens, trimmedStrOnHeap);
     }

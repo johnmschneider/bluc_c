@@ -5,6 +5,8 @@
 #include "jms_utils/jms_ptr_annotations.h"
 #include "jms_utils/jms_str.h"
 
+jms_token* jms_tok_BLUC_SOF = NULL;
+
 struct jms_token
 {
     JMS_OWNED_PTR(jms_object)

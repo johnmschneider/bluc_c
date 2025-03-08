@@ -25,19 +25,15 @@ struct jms_str
 static void jms_str_initHelper(
     JMS_OWNED_PTR(jms_str) self,
     JMS_BORROWED_PTR(const char) initialValue);
-    
+
 jms_str* jms_str_init(JMS_BORROWED_PTR(const char) initialValue)
 {
-    // We have to fudge in the string for the class name so
-    //  that we don't infinitely recurse.
-    jms_str* className
-        = malloc(sizeof(jms_str));
-    jms_str_initHelper(className, "jms_str");
-    
     jms_str* self
         = malloc(sizeof(jms_str));
     self->base
-        = jms_object_init_str(className);
+        = jms_object_init_str(
+            (jms_object*)self,
+            "jms_str");
 
     jms_str_initHelper(self, initialValue);
 
@@ -138,12 +134,12 @@ JMS_BORROWED_PTR(char) jms_str_cStr(jms_str* self)
 
 bool jms_str_eq_s(jms_str* self, jms_str* other)
 {
-    return jms_cstrEq(jms_str_cStr(self), jms_str_cStr(other));
+    return jms_strUtil_cstrEq(jms_str_cStr(self), jms_str_cStr(other));
 }
 
 bool jms_str_eq_cStr(jms_str* self, const char* other)
 {
-    return jms_cstrEq(jms_str_cStr(self), other);
+    return jms_strUtil_cstrEq(jms_str_cStr(self), other);
 }
 
 char jms_str_charAt(jms_str* self, int32_t index)

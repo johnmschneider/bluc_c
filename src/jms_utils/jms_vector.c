@@ -90,6 +90,11 @@ void jms_vec_add(jms_vector* self, void* element)
 
 void* jms_vec_get(jms_vector* self, int32_t index)
 {
+    if (index > self->lastElemIndex)
+    {
+        return NULL;
+    }
+    
     return self->elements[index].data;
 }
 

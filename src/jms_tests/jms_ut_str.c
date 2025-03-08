@@ -11,7 +11,7 @@ static void jms_ut_strInit(void)
     jms_str* test = jms_str_init(testVal);
 
     JMS_ASSERT(jms_str_len(test) == 7,                  __FUNCTION__);
-    JMS_ASSERT(jms_cstrEq(jms_str_cStr(test), testVal),  __FUNCTION__);
+    JMS_ASSERT(jms_strUtil_cstrEq(jms_str_cStr(test), testVal),  __FUNCTION__);
 
     jms_str_del(test);
 }
