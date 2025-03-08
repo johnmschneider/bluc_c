@@ -4,6 +4,7 @@
         "jms_ut_array.h": "c",
         "jms_strutil.h": "c",
         "jms_lex.h": "c",
-        "jms_str.h": "c"
+        "jms_str.h": "c",
+        "jms_stdint.h": "c"
     }
 }

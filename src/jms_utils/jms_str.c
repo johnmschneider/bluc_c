@@ -4,12 +4,15 @@
 #include <stdbool.h>
 #include <string.h>
 
+#include "jms_object.h"
 #include "jms_str.h"
 #include "jms_strUtil.h"
 #include "jms_ptr_annotations.h"
 
 struct jms_str
 {
+    jms_object* base;
+
     /**
      * @brief size of the string *not including* null term
      * 
@@ -19,10 +22,32 @@ struct jms_str
     JMS_OWNED_PTR(char)   value;
 };
 
+static void jms_str_initHelper(
+    JMS_OWNED_PTR(jms_str) self,
+    JMS_BORROWED_PTR(const char) initialValue);
+    
 jms_str* jms_str_init(JMS_BORROWED_PTR(const char) initialValue)
 {
-    jms_str* self = malloc(sizeof(jms_str));
+    // We have to fudge in the string for the class name so
+    //  that we don't infinitely recurse.
+    jms_str* className
+        = malloc(sizeof(jms_str));
+    jms_str_initHelper(className, "jms_str");
+    
+    jms_str* self
+        = malloc(sizeof(jms_str));
+    self->base
+        = jms_object_init_str(className);
 
+    jms_str_initHelper(self, initialValue);
+
+    return self;
+}
+
+static void jms_str_initHelper(
+    JMS_OWNED_PTR(jms_str) self,
+    JMS_BORROWED_PTR(const char) initialValue)
+{
     size_t len = 0;
     while (true)
     {
@@ -40,11 +65,10 @@ jms_str* jms_str_init(JMS_BORROWED_PTR(const char) initialValue)
     self->value = malloc((len + 1) * sizeof(char));
 
     strcpy(self->value, initialValue);
-
-    return self;
 }
 
-void jms_str_del(jms_str* self)
+
+void jms_str_del(JMS_OWNED_PTR(jms_str) self)
 {
     free(self->value);
     free(self);
@@ -161,4 +185,9 @@ bool jms_str_isWhitespace(jms_str *self)
     }
 
     return onlySpacesFoundSoFar;
+}
+
+bool jms_str_isEmptyOrWhitespace(jms_str *self)
+{
+    return jms_str_isEmpty(self) || jms_str_isWhitespace(self);
 }

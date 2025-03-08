@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include "jms_vector.h"
-#include "jms_vector.h"
+#include "stdbool.h"
 
 typedef struct jms_vec_chunk
 {
@@ -93,6 +93,22 @@ void* jms_vec_get(jms_vector* self, int32_t index)
     return self->elements[index].data;
 }
 
+void* jms_vec_find(jms_vector* self, void* searchElement, bool (*comparer)(void*, void*))
+{
+    for (int32_t i = 0; i <= self->lastElemIndex; i++)
+    {
+        void* actualElement = self->elements[i].data;
+        bool isEqual = comparer(actualElement, searchElement);
+
+        if (isEqual)
+        {
+            return actualElement;
+        }
+    }
+
+    return NULL;
+}
+
 /**
  * @param index - the index to shift all of the elements into
  *      (i.e. the empty space left by deleting an element) 
@@ -104,6 +120,8 @@ static void jms_vec_shiftLeft(jms_vector* self, int32_t index)
         self->elements[i - 1].data = self->elements[i].data;
     }
 
+    // If we didn't delete this, we'd just end up with a duplicate
+    //  reference to the pointer in maxElems - 2.
     self->elements[self->maxElems - 1].data = NULL;
 }
 

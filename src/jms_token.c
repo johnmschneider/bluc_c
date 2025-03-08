@@ -1,41 +1,36 @@
 #include <string.h>
 #include <stdlib.h>
+#include "jms_utils/jms_object.h"
 #include "jms_token.h"
 #include "jms_utils/jms_ptr_annotations.h"
 #include "jms_utils/jms_str.h"
 
 struct jms_token
 {
-    JMS_OWNED_PTR(jms_str)  filePath;
-    JMS_OWNED_PTR(jms_str)  text;
-    i32                     lineNumber;
-    i32                     colNumber;
+    JMS_OWNED_PTR(jms_object)
+        base;
+    JMS_OWNED_PTR(jms_str)
+        filePath;
+    JMS_OWNED_PTR(jms_str)
+        text;
+    i32
+        lineNumber;
+    i32
+        colNumber;
 };
 
-JMS_XFER_PTR(jms_token) jms_tok_init_cStr(
-    JMS_BORROWED_PTR(const char) filePath,
+static void jms_tok_staticInit(JMS_OWNED_PTR(jms_object) self);
+
+JMS_XFER_PTR(jms_token) jms_tok_init(
+    JMS_OWNED_PTR(jms_str) filePath,
     int lineNumber,
     int colNumber,
-    JMS_BORROWED_PTR(const char) text)
+    JMS_OWNED_PTR(jms_str) text)
 {
-    jms_token* self = malloc(sizeof(jms_token));
-
-    self->filePath      = jms_str_init(filePath);
-    self->text          = jms_str_init(text);
-
-    self->lineNumber    = lineNumber;
-    self->colNumber     = colNumber;
-
-    return self;
-}
-
-JMS_XFER_PTR(jms_token) jms_tok_init_s(
-    JMS_BORROWED_PTR(jms_str) filePath,
-    int lineNumber,
-    int colNumber,
-    JMS_BORROWED_PTR(jms_str) text)
-{
-    jms_token* self = malloc(sizeof(jms_token));
+    jms_token* self
+            = malloc(sizeof(jms_token));
+    self->base
+            = jms_object_init_str_func(jms_str_init("jms_token"), &jms_tok_staticInit);
 
     self->filePath      = filePath;
     self->text          = text;
@@ -44,6 +39,16 @@ JMS_XFER_PTR(jms_token) jms_tok_init_s(
     self->colNumber     = colNumber;
 
     return self;
+}
+
+static void jms_tok_staticInit(JMS_OWNED_PTR(jms_object) self)
+{
+    jms_tok_BLUC_SOF
+        = jms_tok_init(
+                jms_str_init("N/A"),
+                0,
+                0,
+                jms_str_init("___BLUC_SOF"));
 }
 
 void jms_tok_del(jms_token *self)

@@ -4,12 +4,14 @@
 #include <string.h>
 #include <stdbool.h>
 #include <ctype.h>
+#include "comments_remover.h"
 #include "jms_lex.h"
 #include "jms_token.h"
 #include "jms_utils/jms_freader.h"
 #include "jms_utils/jms_vector.h"
 #include "jms_utils/jms_str.h"
 #include "jms_utils/jms_ptr_annotations.h"
+#include "jms_utils/jms_stdint.h"
 
 typedef struct Lexer {
     JMS_OWNED_PTR(jms_str) fileContents;
@@ -32,6 +34,7 @@ jms_lexer* jms_lex_init()
 
 void jms_lex_del(jms_lexer* self)
 {
+    free(self->fileContents);
     free(self);
 }
 
@@ -47,22 +50,29 @@ static void jms_lex_appendIfNotWhitespace(
 {
     if (!jms_str_isEmpty(wordSoFar) && !jms_str_isWhitespace(wordSoFar))
     {
-        jms_token* token = jms_tok_init_s(
+        jms_token* token = jms_tok_init(
             filePath,
             lineNum,
             colNum,
             wordSoFar);
+
+        jms_vec_add(lexedTokens, token);
     }
 }
 
+// TODO - finish implementing
 static JMS_XFER_PTR(jms_vector) jms_lex(jms_lexer* self)
 {
-    // TODO - finish implementing
-    //linesOfFile = //
-    //int32_t lineNum = 1;
+    jms_str* fileTextWithoutComments = jms_cremover_run(self->fileContents);
+
+    i32 lineNum = 1;
+    i32 column = 1;
     
+    bool checkNextToken = false;
     jms_vector* lexedTokens = jms_vec_init(sizeof(jms_str*));
 
+    jms_vec_add(lexedTokens, jms_tok_BLUC_SOF);
+    
     return NULL;
 }
 

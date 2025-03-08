@@ -15,7 +15,8 @@ typedef struct jms_str jms_str;
  */
 jms_str*    jms_str_init(
                 JMS_BORROWED_PTR(const char) initialValue);
-void        jms_str_del(jms_str* self);
+void        jms_str_del(
+                JMS_OWNED_PTR(jms_str) self);
 
 
 /**
@@ -43,7 +44,7 @@ void        jms_str_append_ch(jms_str* self, char thingToAppend);
 
 /**
  * @brief returns the raw c string pointer for this string. this pointer
- *  is managed by the string class, do not free.
+ *  is managed by the string class, do not free it.
  */
 JMS_BORROWED_PTR(char)  jms_str_cStr(jms_str* self);
 
@@ -72,6 +73,14 @@ void        jms_str_set_cStr(jms_str* self, const char* newValue);
  */
 bool        jms_str_isEmpty(jms_str* self);
 
+/**
+ * @brief Returns whether the string is a whitespace string (e.g., == " " or == "\t" or == "\n")
+ */
 bool        jms_str_isWhitespace(jms_str* self);
+
+/**
+ * @brief Returns whether the string is empty or consists entirely of whitespace
+ */
+bool        jms_str_isEmptyOrWhitespace(jms_str* self);
 
 #endif
