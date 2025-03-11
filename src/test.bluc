@@ -11,7 +11,7 @@ x < y
 // not actually valid code
 (grouptest)
 
-void test()
+fn test()
 {
     // test expressions (can't test ++ or -- until var statements implemented)
     
@@ -33,7 +33,12 @@ public class Test
 {
     private static Test instance;
 
-    private void test2()
+    private fn funcWithReturnType() : int
+    {
+        return 0;
+    }
+
+    private fn test2()
     {
         // test expressions (can't test ++ or -- until var statements implemented)
         
@@ -51,7 +56,7 @@ public class Test
         "a string" = 2;
     }
 
-    public static void Main()
+    public static fn Main()
     {
         test();
 
