@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include <ctype.h>
 #include "comments_remover.h"
 #include "jms_lex.h"
 #include "jms_token.h"

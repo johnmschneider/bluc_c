@@ -1,6 +1,6 @@
 #include <string.h>
 #include <stdlib.h>
-#include "jms_utils/jms_object.h"
+#include "jms_oop_utils/jms_object.h"
 #include "jms_token.h"
 #include "jms_utils/jms_ptr_annotations.h"
 #include "jms_utils/jms_str.h"
@@ -32,7 +32,10 @@ JMS_XFER_PTR(jms_token) jms_tok_init(
     jms_token* self
             = malloc(sizeof(jms_token));
     self->base
-            = jms_object_init_str_func(jms_str_init("jms_token"), &jms_tok_staticInit);
+            = jms_object_init_str_func(
+                (jms_object*)self,
+                "jms_token",
+                &jms_tok_staticInit);
 
     self->filePath      = filePath;
     self->text          = text;

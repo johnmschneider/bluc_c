@@ -98,12 +98,12 @@ void* jms_vec_get(jms_vector* self, int32_t index)
     return self->elements[index].data;
 }
 
-void* jms_vec_find(jms_vector* self, void* searchElement, bool (*comparer)(void*, void*))
+void* jms_vec_find(jms_vector* self, void* searchCriteria, bool (*comparer)(void*, void*))
 {
     for (int32_t i = 0; i <= self->lastElemIndex; i++)
     {
         void* actualElement = self->elements[i].data;
-        bool isEqual = comparer(actualElement, searchElement);
+        bool isEqual = comparer(searchCriteria, actualElement);
 
         if (isEqual)
         {

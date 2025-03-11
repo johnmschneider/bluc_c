@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <string.h>
 
-#include "jms_object.h"
+#include "../jms_oop_utils/jms_object.h"
 #include "jms_str.h"
 #include "jms_strUtil.h"
 #include "jms_ptr_annotations.h"

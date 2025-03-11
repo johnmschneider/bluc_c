@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include "jms_object.h"
-#include "jms_strUtil.h"
-#include "jms_vector.h"
+#include "../jms_utils/jms_strUtil.h"
+#include "../jms_utils/jms_vector.h"
 
 jms_vector* jms_object_typeMetadata = NULL;
 
@@ -126,12 +126,16 @@ static void jms_object_noOpStaticCtor(JMS_OWNED_PTR(jms_object) self)
 
 static bool jms_object_wasStaticCtorCalled(JMS_OWNED_PTR(jms_object) self)
 {
-    bool *result
-            = (bool*)jms_vec_find(
-                    jms_object_typeMetadata,
-                    (void*)(self->typeName),
-                    &jms_object_vectorTypeInfoComparer);
-                    
+    bool *result = NULL;
+
+    if (jms_vec_elemCount(jms_object_typeMetadata) > 0)
+    {
+        result = (bool*)jms_vec_find(
+                jms_object_typeMetadata,
+                (void*)(self->typeName),
+                &jms_object_vectorTypeInfoComparer);
+    }
+
     bool wasStaticCtorCalled
             = result != NULL && *result;
 

@@ -4,8 +4,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include "jms_ptr_annotations.h"
-#include "jms_str.h"
+#include "../jms_utils/jms_ptr_annotations.h"
 
 struct jms_object;
 typedef struct jms_object jms_object;
