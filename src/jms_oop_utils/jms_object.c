@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include "jms_object.h"
 #include "../jms_utils/jms_strUtil.h"
@@ -29,7 +30,7 @@ static bool jms_object_vectorTypeInfoComparer(
     JMS_BORROWED_PTR(void) typeName,
     JMS_BORROWED_PTR(void) element);
 
-static jms_typeInfo* jms_object_findElementInMetadata(
+static JMS_BORROWED_PTR(jms_typeInfo) jms_object_findElementInMetadata(
     JMS_BORROWED_PTR(const char) typeName);
 
 static jms_object* jms_object_initHelper(
@@ -77,11 +78,14 @@ static jms_object* jms_object_initHelper(
     self->typeName
         = typeName;
 
-    jms_typeInfo* typeInfo
-        = jms_typeInfo_init(typeName);
+    if (jms_object_findElementInMetadata(typeName) == NULL)
+    {
+        jms_typeInfo* typeInfo
+            = jms_typeInfo_init(typeName);
 
-    jms_vec_add
-            (jms_object_typeMetadata, typeInfo);
+        jms_vec_add
+                (jms_object_typeMetadata, typeInfo);
+    }
 
     return self;
 }
@@ -108,7 +112,7 @@ static void jms_object_staticCtor(JMS_BORROWED_PTR(jms_object) self)
     {
         return;
     }
-
+    
     // VERY important -- we need to set the "static ctor called" flag
     //  *before* calling the static constructor, otherwise it might
     //  infinitely recurse.
@@ -126,15 +130,13 @@ static bool jms_object_wasStaticCtorCalled(JMS_OWNED_PTR(jms_object) self)
 
     if (jms_vec_elemCount(jms_object_typeMetadata) > 0)
     {
-        jms_typeInfo* info
+        JMS_BORROWED_PTR(jms_typeInfo) info
             = jms_object_findElementInMetadata(self->typeName);
 
         if (info != NULL)
         {
             wasStaticCtorCalled = jms_typeInfo_wasStaticCtorCalled(info);
         }
-
-        jms_typeInfo_del(info);
     }
 
     return wasStaticCtorCalled;
@@ -146,10 +148,12 @@ static bool jms_object_vectorTypeInfoComparer(
 {
     JMS_BORROWED_PTR(const char)
             elementTypeName = jms_typeInfo_typeName((jms_typeInfo*)element);
+    const char*
+            typeNameToFind = (const char*)typeName;
 
     bool isEqual
             = jms_strUtil_cstrEq(
-                (const char*)typeName,
+                typeNameToFind,
                 elementTypeName);
 
     return isEqual;
@@ -158,10 +162,10 @@ static bool jms_object_vectorTypeInfoComparer(
 /**
  * @brief finds an element with the given typename in the metadata vector, or NULL if not found.
  */
-static jms_typeInfo* jms_object_findElementInMetadata(
+static JMS_BORROWED_PTR(jms_typeInfo) jms_object_findElementInMetadata(
     JMS_BORROWED_PTR(const char) typeName)
 {
-    jms_typeInfo* info
+    JMS_BORROWED_PTR(jms_typeInfo) info
         = (jms_typeInfo*)jms_vec_find(
             jms_object_typeMetadata,
             (void*)typeName,

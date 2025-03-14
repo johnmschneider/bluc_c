@@ -10,8 +10,9 @@ struct jms_typeInfo
 JMS_XFER_PTR(jms_typeInfo) jms_typeInfo_init(const char *typeName)
 {
     jms_typeInfo *self = malloc(sizeof(jms_typeInfo));
-
+    
     self->wasStaticCtorCalled = false;
+    self->typeName = typeName;
 
     return self;
 }

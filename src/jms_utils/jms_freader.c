@@ -56,7 +56,9 @@ JMS_XFER_PTR(jms_str) jms_freader_readLines(
 
         fileContents    = jms_str_init("");        
         bytesInFile     = jms_freader_getBytesInFile(file);
-        buffer          = (char*) calloc(bytesInFile, sizeof(char));
+
+        // Add 1 for an extra null terminator, just in case.
+        buffer          = (char*) calloc(bytesInFile + 1, sizeof(char));
 
         fread(buffer, sizeof(char), bytesInFile, file);
         fclose(file);
