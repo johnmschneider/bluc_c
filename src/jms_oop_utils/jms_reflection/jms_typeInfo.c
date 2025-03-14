@@ -3,20 +3,22 @@
 
 struct jms_typeInfo
 {
-    JMS_OWNED_PTR(jms_object)
-        base;
-
     bool wasStaticCtorCalled;
+    const char* typeName;
 };
 
 JMS_XFER_PTR(jms_typeInfo) jms_typeInfo_init(const char *typeName)
 {
     jms_typeInfo *self = malloc(sizeof(jms_typeInfo));
-    self->base = jms_object_init_str((jms_object*)self, "jms_typeInfo");
 
     self->wasStaticCtorCalled = false;
 
     return self;
+}
+
+void jms_typeInfo_del(JMS_OWNED_PTR(jms_typeInfo) self)
+{
+    free(self);
 }
 
 bool jms_typeInfo_wasStaticCtorCalled(JMS_OWNED_PTR(jms_typeInfo) self)
@@ -27,4 +29,9 @@ bool jms_typeInfo_wasStaticCtorCalled(JMS_OWNED_PTR(jms_typeInfo) self)
 void jms_typeInfo_setStaticCtorCalled(JMS_OWNED_PTR(jms_typeInfo) self, bool value)
 {
     self->wasStaticCtorCalled = value;
+}
+
+JMS_BORROWED_PTR(const char) jms_typeInfo_typeName(JMS_BORROWED_PTR(jms_typeInfo) self)
+{
+    return self->typeName;
 }

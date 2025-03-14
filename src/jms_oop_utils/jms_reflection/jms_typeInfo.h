@@ -18,6 +18,11 @@ JMS_XFER_PTR(jms_typeInfo) jms_typeInfo_init(
     JMS_OWNED_PTR(const char)           typeName);
 
 /**
+ * @brief deletes a typeInfo object and frees any memory
+ */
+void jms_typeInfo_del(JMS_OWNED_PTR(jms_typeInfo) self);
+
+/**
  * @brief returns a bool indicating whether the static constructor was called
  */
 bool jms_typeInfo_wasStaticCtorCalled(JMS_OWNED_PTR(jms_typeInfo) self);
@@ -26,6 +31,11 @@ bool jms_typeInfo_wasStaticCtorCalled(JMS_OWNED_PTR(jms_typeInfo) self);
  * @brief sets the value of the "wasStaticCtorCalled" bool
  */
 void jms_typeInfo_setStaticCtorCalled(JMS_OWNED_PTR(jms_typeInfo) self, bool value);
+
+/**
+ * @brief returns the type name of the object
+ */
+JMS_BORROWED_PTR(const char) jms_typeInfo_typeName(JMS_BORROWED_PTR(jms_typeInfo) self);
 
 /**
 * @brief deletes a typeInfo object and frees the memory

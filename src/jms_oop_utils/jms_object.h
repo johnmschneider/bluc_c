@@ -14,11 +14,9 @@ typedef struct jms_object jms_object;
  * @param typeName - the name of the type of the object
  */
 JMS_XFER_PTR(jms_object) jms_object_init_str(
-    JMS_BORROWED_PTR(jms_object)    subclass,
     JMS_OWNED_PTR(const char)       typeName);
 
 JMS_XFER_PTR(jms_object) jms_object_init_str_func(
-    JMS_BORROWED_PTR(jms_object)    subclass,
     JMS_OWNED_PTR(const char)       typeName,
     JMS_OWNED_FPTR(void,            staticCtor, JMS_BORROWED_PTR(jms_object) self));
 
@@ -26,5 +24,10 @@ JMS_XFER_PTR(jms_object) jms_object_init_str_func(
  * @brief deletes an object
  */
 void jms_object_del(JMS_OWNED_PTR(jms_object) self);
+
+/**
+ * @brief returns the jms_object instance underlying the current class instance.
+ */
+JMS_BORROWED_PTR(jms_object) jms_object_base(JMS_BORROWED_PTR(jms_object) self);
 
 #endif // JMS_OBJECT_H

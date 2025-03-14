@@ -10,7 +10,7 @@ jms_token* jms_tok_BLUC_SOF = NULL;
 struct jms_token
 {
     JMS_OWNED_PTR(jms_object)
-        base;
+        objectBase;
     JMS_OWNED_PTR(jms_str)
         filePath;
     JMS_OWNED_PTR(jms_str)
@@ -31,9 +31,8 @@ JMS_XFER_PTR(jms_token) jms_tok_init(
 {
     jms_token* self
             = malloc(sizeof(jms_token));
-    self->base
+    self->objectBase
             = jms_object_init_str_func(
-                (jms_object*)self,
                 "jms_token",
                 &jms_tok_staticInit);
 

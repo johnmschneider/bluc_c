@@ -11,7 +11,7 @@
 
 struct jms_str
 {
-    jms_object* base;
+    jms_object* objectBase;
 
     /**
      * @brief size of the string *not including* null term
@@ -28,12 +28,8 @@ static void jms_str_initHelper(
 
 jms_str* jms_str_init(JMS_BORROWED_PTR(const char) initialValue)
 {
-    jms_str* self
-        = malloc(sizeof(jms_str));
-    self->base
-        = jms_object_init_str(
-            (jms_object*)self,
-            "jms_str");
+    jms_str* self       = malloc(sizeof(jms_str));
+    self->objectBase    = jms_object_init_str("jms_str");
 
     jms_str_initHelper(self, initialValue);
 

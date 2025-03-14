@@ -49,12 +49,12 @@ void        jms_str_append_ch(jms_str* self, char thingToAppend);
 JMS_BORROWED_PTR(char)  jms_str_cStr(jms_str* self);
 
 /**
- * @brief returns whether the values of the two strings are the same
+ * @brief returns whether or not the values of the two strings are the same
  */
 bool        jms_str_eq_s(jms_str* self, jms_str* other);
 
 /**
- * @brief returns the underlying c string
+ * @brief returns whether or not the values of the string and the c string are the same
  */
 bool        jms_str_eq_cStr(jms_str* self, const char* other);
 

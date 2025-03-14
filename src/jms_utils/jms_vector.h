@@ -35,7 +35,7 @@ void        jms_vec_add         (jms_vector* self, void* element);
 void*       jms_vec_get         (jms_vector* self, i32 index);
 
 /**
- * @brief Find the index of an element in the vector using the given searchCriteria and comparison function.
+ * @brief Finds an element in the vector using the given searchCriteria and comparison function.
  *      The format/type of searchCriteria is determined by the comparison function.
  */
 void*       jms_vec_find        (jms_vector* self, void* searchCriteria, bool (*comparer)(void*, void*));
