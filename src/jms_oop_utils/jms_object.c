@@ -5,6 +5,7 @@
 #include "../jms_utils/jms_vector.h"
 #include "jms_reflection/jms_typeInfo.h"
 
+#define JMS_OBJECT_GFET
 jms_vector* jms_object_typeMetadata = NULL;
 
 struct jms_object

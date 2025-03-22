@@ -16,18 +16,26 @@ void
 /**
  * @brief Returns how many elements are currently being stored.
  */
-i32     jms_vec_elemCount   (jms_vector* self);
+i32         jms_vec_elemCount   (jms_vector* self);
 
 /**
  * @brief Returns the maximum number of elements that can be stored
  *  with the currently allocated memory for the vector.
  */
-i32     jms_vec_capacity    (jms_vector* self);
+i32         jms_vec_capacity    (jms_vector* self);
 
 /**
  * @brief Add *element* to the vector. The vector will manage the pointer.
  */
 void        jms_vec_add         (jms_vector* self, void* element);
+
+/**
+ * @brief Add all elements from the *var args* to the vector. The vector will manage the pointers. The var args should be of a pointer type.
+ * @param self - the vector to add to.
+ * @param count - the number of elements in the variadic arguments. C varargs are dumb and can't determine this automatically.
+ * @param ... - the elements to add.
+ */
+void        jms_vec_addAll      (jms_vector* self, i32 count, ...);
 
 /**
  * @brief Get the value at *index* from the vector.

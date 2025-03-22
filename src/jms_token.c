@@ -1,5 +1,6 @@
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include "jms_oop_utils/jms_object.h"
 #include "jms_token.h"
 #include "jms_utils/jms_ptr_annotations.h"
@@ -47,6 +48,9 @@ JMS_XFER_PTR(jms_token) jms_tok_init(
 
 static void jms_tok_staticInit(JMS_OWNED_PTR(jms_object) self)
 {
+    printf("[%s]: static init reached\n", __FUNCTION__);
+    fflush(stdout);
+    
     jms_tok_BLUC_SOF
         = jms_tok_init(
                 jms_str_init("N/A"),

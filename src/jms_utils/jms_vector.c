@@ -1,5 +1,7 @@
 #include <stdlib.h>
+#include <stdarg.h>
 #include "jms_vector.h"
+#include "jms_str.h"
 #include "stdbool.h"
 
 typedef struct jms_vec_chunk
@@ -8,6 +10,11 @@ typedef struct jms_vec_chunk
      * NULL if not yet initialized
      */
     void* data;
+
+    /**
+     * Destructor for any given element of the data. If NULL, then no destructor is called.
+     */
+    void (*destructor) (void* self);
 } jms_vec_chunk;
 
 
@@ -47,6 +54,16 @@ struct jms_vector* jms_vec_init(int32_t elemSize)
 
 void jms_vec_del(jms_vector* self)
 {
+    for (i32 i = 0; i < self->lastElemIndex; i++)
+    {
+        jms_vec_chunk* element = self->elements[i].data;
+
+        if (element != NULL && element->destructor != NULL)
+        {
+            element->destructor(element->data);
+        }
+    }
+
     free(self->elements);
     self->elements = NULL;
 
@@ -76,7 +93,7 @@ static void jms_vec_allocMoreSpace(jms_vector* self)
     }
 }
 
-void jms_vec_add(jms_vector* self, void* element)
+void jms_vec_add(jms_vector* self, void* element, void (*destructor) (void* self))
 {
     self->lastElemIndex++;
 
@@ -85,7 +102,26 @@ void jms_vec_add(jms_vector* self, void* element)
         jms_vec_allocMoreSpace(self);
     }
 
-    self->elements[self->lastElemIndex].data = element;
+    jms_vec_chunk chunk
+        = self->elements[self->lastElemIndex];
+    chunk.data
+        = element;
+    chunk.destructor
+        = destructor;
+}
+
+void jms_vec_addAll(jms_vector* self, i32 count, ...)
+{
+    va_list args;
+    va_start(args, count);
+
+    for (i32 i = 0; i < count; i++)
+    {
+        void* currentArg = va_arg(args, void*);
+        jms_vec_add(self, currentArg);
+    }
+
+    va_end(args);
 }
 
 void* jms_vec_get(jms_vector* self, int32_t index)

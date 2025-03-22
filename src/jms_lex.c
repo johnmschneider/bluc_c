@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <ctype.h>
 #include "comments_remover.h"
 #include "jms_lex.h"
 #include "jms_token.h"
@@ -60,26 +61,87 @@ static void jms_lex_appendIfNotWhitespace(
 }
 
 // TODO - finish implementing
-static JMS_XFER_PTR(jms_vector) jms_lex(jms_lexer* self)
+static JMS_XFER_PTR(jms_vector) jms_lex(
+        JMS_BORROWED_PTR(jms_lexer) self,
+        JMS_BORROWED_PTR(jms_str) filePath)
 {
     jms_str* fileTextWithoutComments = jms_cremover_run(self->fileContents);
 
     i32 lineNum = 1;
     i32 column = 1;
     
-    bool checkNextToken = false;
-    jms_vector* lexedTokens = jms_vec_init(sizeof(jms_str*));
+    bool
+        checkNextToken = false;
+    JMS_XFER_PTR(jms_vector)
+        lexedTokens = jms_vec_init(sizeof(jms_str*));
 
-    jms_vec_add(lexedTokens, jms_tok_BLUC_SOF);
+    // "Special character" lexemes which will *definitely* be a single character.
+    const char* singleTokenLexemes[] =
+    {
+        "(", ")", "{", "}", "[", "]", ";", ",", "."
+    };
+
+    // "Special character" lexemes which *may* be multiple characters.
+    const char* multiTokenLexemes[] =
+    {
+        "=", "==", "!=", "+=", "-=", "*=", "/=", "%=", "<=", ">=", "&&", "||", "++", "--"
+
+    };
+
+    JMS_OWNED_PTR(jms_vector)
+        singleTokenLexemesVec = jms_vec_init(sizeof(jms_str*));
+    JMS_OWNED_PTR(jms_vector)
+        multiTokenLexemesVec = jms_vec_init(sizeof(jms_str*));
+
+    for (size_t i = 0; i < sizeof(singleTokenLexemes)/sizeof(singleTokenLexemes[0]); i++)
+    {
+        jms_str* lexeme = jms_str_init(singleTokenLexemes[i]);
+        jms_vec_add(singleTokenLexemesVec, lexeme);
+    }
     
-    return NULL;
+
+    JMS_OWNED_PTR(jms_str)
+        wordSoFar = jms_str_init("");
+
+    for (size_t i = 0; i < jms_str_len(fileTextWithoutComments); i++)
+    {
+        char curChar = jms_str_charAt(fileTextWithoutComments, i);
+
+        if (curChar == '\n')
+        {
+            lineNum++;
+            column = 1;
+        }
+        else
+        {
+            column++;
+        }
+
+        
+        if (isspace(curChar))
+        {
+            jms_lex_appendIfNotWhitespace(
+                lexedTokens,
+                self->fileContents,
+                lineNum,
+                column,
+                wordSoFar);
+        }
+        else
+        {
+            jms_str_append_ch(wordSoFar, curChar);
+        }
+    }
+
+    return lexedTokens;
 }
 
 JMS_XFER_PTR(jms_vector) jms_lexFile(jms_lexer* self, const char* filePath)
 {
     JMS_XFER_PTR(jms_vector)
-                    lexedTokens;
-    jms_freader*    reader      = jms_freader_init(filePath);
+        lexedTokens;
+    JMS_OWNED_PTR(jms_freader)
+        reader = jms_freader_init(filePath);
 
     self->fileContents = jms_freader_readLines(reader);
 
@@ -91,7 +153,12 @@ JMS_XFER_PTR(jms_vector) jms_lexFile(jms_lexer* self, const char* filePath)
     }
     else
     {
-        lexedTokens = jms_lex(self);
+        JMS_OWNED_PTR(jms_str)
+            filePathAsStr = jms_str_init(filePath);
+
+        lexedTokens = jms_lex(self, filePathAsStr);
+
+        jms_str_del(filePathAsStr);
     }
 
     jms_freader_del(reader);

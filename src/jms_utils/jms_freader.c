@@ -65,8 +65,11 @@ JMS_XFER_PTR(jms_str) jms_freader_readLines(
 
         jms_str_set_cStr(fileContents, buffer);
 
-        printf("\n[%s]: fileContents == \n>[\n%s\n]<\n\n",
-            __func__, jms_str_cStr(fileContents));
+        // JMS 3/14/2025: I fixed the bug I was working on, but I'm leaving
+        //      the debug print statement here in case I need it later.
+        //
+        //printf("\n[%s]: fileContents == \n>[\n%s\n]<\n\n",
+        //    __func__, jms_str_cStr(fileContents));
     }
 
     return fileContents;

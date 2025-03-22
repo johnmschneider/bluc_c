@@ -56,8 +56,10 @@ int run_program(int argc, char* argv[])
         printf("main: before print loop\n");
         for (size_t i = 0; i < jms_vec_elemCount(lexedTokens); i++)
         {
-            jms_str* elem = jms_vec_get(lexedTokens, i);
-            char* cStr = jms_str_cStr(elem);
+            JMS_BORROWED_PTR(jms_str)
+                elem = jms_vec_get(lexedTokens, i);
+            JMS_BORROWED_PTR(char)
+                cStr = jms_str_cStr(elem);
             printf("main: token %zu: %s\n", i, cStr);
         }
 
