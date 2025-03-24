@@ -63,6 +63,10 @@ void jms_tok_del(jms_token *self)
 {
     free(self->filePath);
     free(self->text);
+
+    jms_object_del(self->objectBase);
+    self->objectBase = NULL;
+    
     free(self);
 }
 

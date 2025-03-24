@@ -36,6 +36,16 @@ jms_str* jms_str_init(JMS_BORROWED_PTR(const char) initialValue)
     return self;
 }
 
+jms_str* jms_str_init_str(JMS_BORROWED_PTR(jms_str) initialValue)
+{
+    jms_str* self       = malloc(sizeof(jms_str));
+    self->objectBase    = jms_object_init_str("jms_str");
+
+    jms_str_initHelper(self, jms_str_cStr(initialValue));
+
+    return self;
+}
+
 static void jms_str_initHelper(
     JMS_OWNED_PTR(jms_str) self,
     JMS_BORROWED_PTR(const char) initialValue)
@@ -63,6 +73,10 @@ static void jms_str_initHelper(
 void jms_str_del(JMS_OWNED_PTR(jms_str) self)
 {
     free(self->value);
+    
+    jms_object_del(self->objectBase);
+    self->objectBase = NULL;
+
     free(self);
 }
 
@@ -182,4 +196,19 @@ bool jms_str_isWhitespace(jms_str *self)
 bool jms_str_isEmptyOrWhitespace(jms_str *self)
 {
     return jms_str_isEmpty(self) || jms_str_isWhitespace(self);
+}
+
+JMS_XFER_PTR(jms_str) jms_str_substr(jms_str* self, ui32 startIndex, ui32 stopIndex)
+{
+    if (startIndex < 0 || stopIndex < 0 || startIndex >= stopIndex || stopIndex > jms_str_len(self))
+    {
+        return NULL;
+    }
+
+    JMS_OWNED_PTR(char)     rawSubStr   = jms_strUtil_substrToHeap(jms_str_cStr(self), startIndex, stopIndex);
+    JMS_XFER_PTR(jms_str)   subStr      = jms_str_init(rawSubStr);
+    
+    free(rawSubStr);
+
+    return subStr;
 }

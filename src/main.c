@@ -44,8 +44,12 @@ int run_program(int argc, char* argv[])
 #endif
 
     printf("main: before lexFile\n");
-    jms_lexer*  lexer       = jms_lex_init();
-    jms_vector* lexedTokens = jms_lexFile(lexer, filePath);
+
+    JMS_OWNED_PTR(jms_lexer)  lexer
+        = jms_lex_init();
+    JMS_OWNED_PTR(jms_vector) lexedTokens
+        = jms_lexFile(lexer, filePath);
+        
     printf("main: after lexFile\n");
 
     //printf("main.c/main: elemCount(lexedTokens) == %zu",

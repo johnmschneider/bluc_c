@@ -85,7 +85,9 @@ static jms_object* jms_object_initHelper(
             = jms_typeInfo_init(typeName);
 
         jms_vec_add
-                (jms_object_typeMetadata, typeInfo);
+                (jms_object_typeMetadata,
+                typeInfo,
+                (void (*) (void*))jms_typeInfo_del);
     }
 
     return self;

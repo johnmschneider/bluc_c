@@ -7,6 +7,8 @@
 struct jms_vector;
 typedef struct jms_vector jms_vector;
 
+void jms_vec_static_defaultDestructor(void* self);
+
 JMS_OWNED_PTR(jms_vector)
     jms_vec_init                (i32 elemSize);
 
@@ -26,16 +28,20 @@ i32         jms_vec_capacity    (jms_vector* self);
 
 /**
  * @brief Add *element* to the vector. The vector will manage the pointer.
+ * @param self - the vector to add to.
+ * @param element - the element to add.
+ * @param destructor - the destructor to call when the element is removed from the vector, or NULL if no destruction is needed.
  */
-void        jms_vec_add         (jms_vector* self, void* element);
+void        jms_vec_add         (jms_vector* self, void* element, void (*destructor) (void* self));
 
 /**
  * @brief Add all elements from the *var args* to the vector. The vector will manage the pointers. The var args should be of a pointer type.
  * @param self - the vector to add to.
  * @param count - the number of elements in the variadic arguments. C varargs are dumb and can't determine this automatically.
+ * @param destructor - the destructor to call when the element is removed from the vector, or NULL if no destruction is needed.
  * @param ... - the elements to add.
  */
-void        jms_vec_addAll      (jms_vector* self, i32 count, ...);
+void        jms_vec_addAll      (jms_vector* self, i32 count, void (*destructor) (void* self), ...);
 
 /**
  * @brief Get the value at *index* from the vector.

@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "jms_ptr_annotations.h"
+#include "jms_stdint.h"
 
 struct jms_str;
 typedef struct jms_str jms_str;
@@ -15,6 +16,14 @@ typedef struct jms_str jms_str;
  */
 jms_str*    jms_str_init(
                 JMS_BORROWED_PTR(const char) initialValue);
+
+/**
+ * @brief creates a *deep copy* of string *initialValue* and
+ *  and manages the pointer for the deep copy.
+ */
+jms_str*    jms_str_init_str(
+                JMS_BORROWED_PTR(jms_str) initialValue);
+
 void        jms_str_del(
                 JMS_OWNED_PTR(jms_str) self);
 
@@ -82,5 +91,10 @@ bool        jms_str_isWhitespace(jms_str* self);
  * @brief Returns whether the string is empty or consists entirely of whitespace
  */
 bool        jms_str_isEmptyOrWhitespace(jms_str* self);
+
+/**
+ * @brief Returns a substring of the string from start to end (inclusive)
+ */
+JMS_XFER_PTR(jms_str) jms_str_substr(jms_str* self, ui32 startIndex, ui32 endIndex);
 
 #endif

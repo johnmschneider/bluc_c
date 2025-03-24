@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include "jms_vector.h"
-#include "jms_str.h"
 #include "stdbool.h"
 
 typedef struct jms_vec_chunk
@@ -47,6 +46,7 @@ struct jms_vector* jms_vec_init(int32_t elemSize)
     for (int32_t i = 0; i < startElemStorage; i++)
     {
         vec->elements[i].data = NULL;
+        vec->elements[i].destructor = NULL;
     }
 
     return vec;
@@ -56,17 +56,24 @@ void jms_vec_del(jms_vector* self)
 {
     for (i32 i = 0; i < self->lastElemIndex; i++)
     {
-        jms_vec_chunk* element = self->elements[i].data;
+        JMS_BORROWED_PTR(jms_vec_chunk) chunk
+            = &self->elements[i];
 
-        if (element != NULL && element->destructor != NULL)
+        if (chunk->data != NULL
+                && chunk->destructor != NULL)
         {
-            element->destructor(element->data);
+            chunk->destructor(chunk->data);
         }
     }
 
     free(self->elements);
     self->elements = NULL;
 
+    free(self);
+}
+
+void jms_vec_static_defaultDestructor(void* self)
+{
     free(self);
 }
 
@@ -80,14 +87,21 @@ int32_t jms_vec_capacity(jms_vector* self)
     return self->maxElems;
 }
 
+/**
+ * @brief Allocates more space for the vector.
+ *<b> PRECONDITIONS:<b/><br/>
+ *  - self->elements[self->lastElemIndex] is not yet populated with data.
+ */
 static void jms_vec_allocMoreSpace(jms_vector* self)
 {
-    int32_t newestElem = self->lastElemIndex;
-    self->maxElems *= 2;
-    self->elements = realloc(self->elements, self->maxElems * 
-        sizeof(jms_vec_chunk));
+    self->maxElems
+        *= 2;
+    self->elements
+        = realloc(
+            self->elements,
+            self->maxElems * sizeof(jms_vec_chunk));
 
-    for (int32_t i = newestElem; i < self->lastElemIndex; i++)
+    for (i32 i = self->lastElemIndex; i < self->maxElems; i++)
     {
         self->elements[i].data = NULL;
     }
@@ -102,23 +116,23 @@ void jms_vec_add(jms_vector* self, void* element, void (*destructor) (void* self
         jms_vec_allocMoreSpace(self);
     }
 
-    jms_vec_chunk chunk
-        = self->elements[self->lastElemIndex];
-    chunk.data
+    JMS_BORROWED_PTR(jms_vec_chunk) chunk
+        = &self->elements[self->lastElemIndex];
+    chunk->data
         = element;
-    chunk.destructor
+    chunk->destructor
         = destructor;
 }
 
-void jms_vec_addAll(jms_vector* self, i32 count, ...)
+void jms_vec_addAll(jms_vector* self, i32 count, void (*destructor) (void* self), ...)
 {
     va_list args;
-    va_start(args, count);
+    va_start(args, destructor);
 
     for (i32 i = 0; i < count; i++)
     {
         void* currentArg = va_arg(args, void*);
-        jms_vec_add(self, currentArg);
+        jms_vec_add(self, currentArg, destructor);
     }
 
     va_end(args);

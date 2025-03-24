@@ -43,20 +43,24 @@ void jms_lex_del(jms_lexer* self)
  */
 static void jms_lex_appendIfNotWhitespace(
     JMS_BORROWED_PTR(jms_vector) lexedTokens,
-    JMS_OWNED_PTR(jms_str) filePath,
+    JMS_BORROWED_PTR(jms_str) filePath,
     int32_t lineNum,
     int32_t colNum,
-    JMS_OWNED_PTR(jms_str) wordSoFar)
+    JMS_BORROWED_PTR(jms_str) wordSoFar)
 {
     if (!jms_str_isEmpty(wordSoFar) && !jms_str_isWhitespace(wordSoFar))
     {
         jms_token* token = jms_tok_init(
-            filePath,
+            jms_str_init_str(filePath),
             lineNum,
             colNum,
-            wordSoFar);
+            jms_str_init_str(wordSoFar));
 
-        jms_vec_add(lexedTokens, token);
+        // Function pointers are why we can't have nice things in c. That, and lack of real generics.
+        jms_vec_add(lexedTokens, token, ((void (*) (void*))jms_tok_del));
+
+        // Reset the "Word so far" to an empty string.
+        jms_str_set_cStr(wordSoFar, "");
     }
 }
 
@@ -96,9 +100,12 @@ static JMS_XFER_PTR(jms_vector) jms_lex(
     for (size_t i = 0; i < sizeof(singleTokenLexemes)/sizeof(singleTokenLexemes[0]); i++)
     {
         jms_str* lexeme = jms_str_init(singleTokenLexemes[i]);
-        jms_vec_add(singleTokenLexemesVec, lexeme);
+        jms_vec_add(
+            singleTokenLexemesVec,
+            lexeme, 
+            ((void (*) (void*))jms_str_del));
     }
-    
+
 
     JMS_OWNED_PTR(jms_str)
         wordSoFar = jms_str_init("");
@@ -117,12 +124,12 @@ static JMS_XFER_PTR(jms_vector) jms_lex(
             column++;
         }
 
-        
+
         if (isspace(curChar))
         {
             jms_lex_appendIfNotWhitespace(
                 lexedTokens,
-                self->fileContents,
+                filePath,
                 lineNum,
                 column,
                 wordSoFar);
@@ -153,7 +160,7 @@ JMS_XFER_PTR(jms_vector) jms_lexFile(jms_lexer* self, const char* filePath)
     }
     else
     {
-        JMS_OWNED_PTR(jms_str)
+        JMS_XFER_PTR(jms_str)
             filePathAsStr = jms_str_init(filePath);
 
         lexedTokens = jms_lex(self, filePathAsStr);
