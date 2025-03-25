@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "jms_oop_utils/jms_static_ctors_dtors.h"
+#include "jms_token.h"
 #include "jms_utils/jms_vector.h"
 #include "jms_tests/jms_unitTests.h"
 #include "jms_lex.h"
@@ -60,10 +61,14 @@ int run_program(int argc, char* argv[])
         printf("main: before print loop\n");
         for (size_t i = 0; i < jms_vec_elemCount(lexedTokens); i++)
         {
-            JMS_BORROWED_PTR(jms_str)
+            JMS_BORROWED_PTR(jms_token)
                 elem = jms_vec_get(lexedTokens, i);
+
+            // This will look much nicer in the self-hosted compiler:
+            //
+            //      var cStr = elem.getText().cStr();
             JMS_BORROWED_PTR(char)
-                cStr = jms_str_cStr(elem);
+                cStr = jms_str_cStr(jms_tok_getText(elem));
             printf("main: token %zu: %s\n", i, cStr);
         }
 

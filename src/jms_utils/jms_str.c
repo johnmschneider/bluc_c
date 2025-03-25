@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <stdio.h>
 
 #include "../jms_oop_utils/jms_object.h"
 #include "jms_str.h"
@@ -100,7 +101,7 @@ void jms_str_append_s(jms_str* self, jms_str* thingToAppend)
         strcpy(newVal, self->value);
     }
 
-    strcat(newVal, thingToAppend->value);
+    strncat(newVal, thingToAppend->value, thingToAppend->length);
 
     free(self->value);
 
@@ -152,6 +153,12 @@ bool jms_str_eq_cStr(jms_str* self, const char* other)
     return jms_strUtil_cstrEq(jms_str_cStr(self), other);
 }
 
+bool jms_str_eq_ch(jms_str* self, char other)
+{
+    char cStr[2] = {other, '\0'};
+    return jms_strUtil_cstrEq(jms_str_cStr(self), cStr);
+}
+
 char jms_str_charAt(jms_str* self, int32_t index)
 {
     return self->value[index];
@@ -161,7 +168,7 @@ void jms_str_set_cStr(jms_str* self, const char* newValue)
 {
     size_t length  = strlen(newValue);
     self->length   = (int32_t) length;
-
+    
     // add 1 for null terminator
     char* newMemoryLocation = realloc(self->value, (length + 1) * sizeof(char));
     self->value = newMemoryLocation;

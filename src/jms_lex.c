@@ -64,12 +64,23 @@ static void jms_lex_appendIfNotWhitespace(
     }
 }
 
+bool jms_lex_charStringComparer(void* searchCriteria, void* actualElement)
+{
+    JMS_BORROWED_PTR(char) searchChar       = (char*) searchCriteria;
+    JMS_BORROWED_PTR(jms_str) elementAsStr  = (jms_str*) actualElement;
+
+    return jms_str_eq_ch(elementAsStr, *searchChar);
+}
+
 // TODO - finish implementing
 static JMS_XFER_PTR(jms_vector) jms_lex(
         JMS_BORROWED_PTR(jms_lexer) self,
         JMS_BORROWED_PTR(jms_str) filePath)
 {
-    jms_str* fileTextWithoutComments = jms_cremover_run(self->fileContents);
+    JMS_OWNED_PTR(jms_str) fileTextWithoutComments
+        = jms_cremover_run(self->fileContents);
+
+    printf("[%s]: fileTextWithoutComments == `%s`\n", __FUNCTION__, jms_str_cStr(fileTextWithoutComments));
 
     i32 lineNum = 1;
     i32 column = 1;
@@ -78,34 +89,17 @@ static JMS_XFER_PTR(jms_vector) jms_lex(
         checkNextToken = false;
     JMS_XFER_PTR(jms_vector)
         lexedTokens = jms_vec_init(sizeof(jms_str*));
+    
+    JMS_OWNED_PTR(jms_vector)
+        singleTokenLexemesVec = jms_vec_init(sizeof(char*));
+    JMS_OWNED_PTR(jms_vector)
+        multiTokenLexemesVec = jms_vec_init(sizeof(char*));
 
     // "Special character" lexemes which will *definitely* be a single character.
-    const char* singleTokenLexemes[] =
-    {
-        "(", ")", "{", "}", "[", "]", ";", ",", "."
-    };
+    jms_vec_addAll(singleTokenLexemesVec, 9, NULL, "(", ")", "{", "}", "[", "]", ";", ",", ".");
 
     // "Special character" lexemes which *may* be multiple characters.
-    const char* multiTokenLexemes[] =
-    {
-        "=", "==", "!=", "+=", "-=", "*=", "/=", "%=", "<=", ">=", "&&", "||", "++", "--"
-
-    };
-
-    JMS_OWNED_PTR(jms_vector)
-        singleTokenLexemesVec = jms_vec_init(sizeof(jms_str*));
-    JMS_OWNED_PTR(jms_vector)
-        multiTokenLexemesVec = jms_vec_init(sizeof(jms_str*));
-
-    for (size_t i = 0; i < sizeof(singleTokenLexemes)/sizeof(singleTokenLexemes[0]); i++)
-    {
-        jms_str* lexeme = jms_str_init(singleTokenLexemes[i]);
-        jms_vec_add(
-            singleTokenLexemesVec,
-            lexeme, 
-            ((void (*) (void*))jms_str_del));
-    }
-
+    jms_vec_addAll(multiTokenLexemesVec, 14, NULL, "=", "==", "!=", "+=", "-=", "*=", "/=", "%=", "<=", ">=", "&&", "||", "++", "--");
 
     JMS_OWNED_PTR(jms_str)
         wordSoFar = jms_str_init("");
@@ -124,8 +118,7 @@ static JMS_XFER_PTR(jms_vector) jms_lex(
             column++;
         }
 
-
-        if (isspace(curChar))
+        if (isspace(curChar) || jms_vec_find(singleTokenLexemesVec, &curChar, jms_lex_charStringComparer))
         {
             jms_lex_appendIfNotWhitespace(
                 lexedTokens,
@@ -139,6 +132,11 @@ static JMS_XFER_PTR(jms_vector) jms_lex(
             jms_str_append_ch(wordSoFar, curChar);
         }
     }
+
+    jms_vec_del(singleTokenLexemesVec);
+    jms_vec_del(multiTokenLexemesVec);
+    jms_str_del(wordSoFar);
+    jms_str_del(fileTextWithoutComments);
 
     return lexedTokens;
 }
