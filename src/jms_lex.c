@@ -12,6 +12,7 @@
 #include "jms_utils/jms_str.h"
 #include "jms_utils/jms_ptr_annotations.h"
 #include "jms_utils/jms_stdint.h"
+#include "jms_utils/jms_strUtil.h"
 
 typedef struct Lexer {
     JMS_OWNED_PTR(jms_str) fileContents;
@@ -66,10 +67,10 @@ static void jms_lex_appendIfNotWhitespace(
 
 bool jms_lex_charStringComparer(void* searchCriteria, void* actualElement)
 {
-    JMS_BORROWED_PTR(char) searchChar       = (char*) searchCriteria;
-    JMS_BORROWED_PTR(jms_str) elementAsStr  = (jms_str*) actualElement;
-
-    return jms_str_eq_ch(elementAsStr, *searchChar);
+    JMS_BORROWED_PTR(char) searchChar   = (char*) searchCriteria;
+    JMS_BORROWED_PTR(char) elementAsStr = (char*) actualElement;
+    
+    return jms_strUtil_cstrEq(elementAsStr, searchChar);
 }
 
 // TODO - finish implementing
@@ -118,8 +119,26 @@ static JMS_XFER_PTR(jms_vector) jms_lex(
             column++;
         }
 
-        if (isspace(curChar) || jms_vec_find(singleTokenLexemesVec, &curChar, jms_lex_charStringComparer))
+        if (isspace(curChar))
         {
+            jms_lex_appendIfNotWhitespace(
+                lexedTokens,
+                filePath,
+                lineNum,
+                column,
+                wordSoFar);
+        }
+        else if (jms_vec_find(singleTokenLexemesVec, &curChar, jms_lex_charStringComparer))
+        {
+            jms_lex_appendIfNotWhitespace(
+                lexedTokens,
+                filePath,
+                lineNum,
+                column,
+                wordSoFar);
+
+            jms_str_append_ch(wordSoFar, curChar);
+
             jms_lex_appendIfNotWhitespace(
                 lexedTokens,
                 filePath,
