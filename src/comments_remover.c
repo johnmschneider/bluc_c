@@ -40,6 +40,9 @@ JMS_XFER_PTR(jms_str) jms_cremover_run(JMS_BORROWED_PTR(jms_str) linesOfFile)
                     }
                     commentEndIndex++;
                 }
+                
+                // Add a newline, still, so that the line numbers are correct.
+                jms_str_append_cs(newLinesOfFile, "\n");
 
                 // We've already lexed this code, skip ahead to the end of the comment.
                 i = commentEndIndex;

@@ -69,7 +69,9 @@ int run_program(int argc, char* argv[])
             //      var cStr = elem.getText().cStr();
             JMS_BORROWED_PTR(char)
                 cStr = jms_str_cStr(jms_tok_getText(elem));
-            printf("main: token %zu: %s\n", i, cStr);
+                
+            printf("main: token %zu, at (line %d, col %d): %s\n",
+                        i, jms_tok_getLineNum(elem), jms_tok_getColNum(elem) , cStr);
         }
 
         jms_vec_del(lexedTokens);
