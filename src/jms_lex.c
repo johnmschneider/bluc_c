@@ -104,12 +104,10 @@ static JMS_XFER_PTR(jms_vector) jms_lex(
     printf("[%s]: fileTextWithoutComments == `%s`\n", __FUNCTION__, jms_str_cStr(fileTextWithoutComments));
 
     i32 lineNum = 1;
-    i32 column = 1;
+
+    // The column that is currently *selected*, not the column right after the current token.
+    i32 column = 0;
     
-    bool
-        checkNextToken = false;
-    bool
-        wasLastCharSpace = false;
     bool
         wasLastCharEscaped = false;
     bool
@@ -139,7 +137,7 @@ static JMS_XFER_PTR(jms_vector) jms_lex(
         if (curChar == '\n')
         {
             lineNum++;
-            column = 1;
+            column = 0;
         }
         else
         {
@@ -151,7 +149,12 @@ static JMS_XFER_PTR(jms_vector) jms_lex(
             if (wasLastCharEscaped)
             {
                 // We have a double-escaped character, so we need to add it to the word.
-                jms_str_append_ch(wordSoFar, curChar);
+                jms_str_append_cs(wordSoFar, "\\\\");
+                
+                // Add another "1" to the column since we have *two* characters here.
+                //  We've already added a "1" at the beginning of the loop, so this
+                //  will end up moving the column by 2.
+                column++;
                 wasLastCharEscaped = false;
             }
             else
@@ -169,10 +172,14 @@ static JMS_XFER_PTR(jms_vector) jms_lex(
                 {
                     // We have an escaped quote, so we need to add it to the word.
                     jms_str_append_ch(wordSoFar, curChar);
+
+                    printf("[%s]: got here #1, word ==`%s`", __FUNCTION__, jms_str_cStr(wordSoFar));
+                    wasLastCharEscaped = false;
                 }
                 else
                 {
                     // We have the end of a string literal, so we need to add it to the word.
+                    printf("[%s]: got here #2, word == `%s`", __FUNCTION__, jms_str_cStr(wordSoFar));
 
                     jms_lex_appendIfNotWhitespace(
                         lexedTokens,
@@ -181,18 +188,14 @@ static JMS_XFER_PTR(jms_vector) jms_lex(
                         column,
                         wordSoFar);
                     
-                    jms_str_append_ch(wordSoFar, curChar);
-
-                    jms_lex_appendIfNotWhitespace(
-                        lexedTokens,
-                        filePath,
-                        lineNum,
-                        column,
-                        wordSoFar);
-                        
+                    wasLastCharEscaped = false;
                     isInString = false;
                 }
+
+                wasLastCharEscaped = false;
             }
+
+            jms_str_append_ch(wordSoFar, curChar);
         }
         else if (curChar == '\"')
         {
