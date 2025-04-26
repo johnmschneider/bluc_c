@@ -92,8 +92,7 @@ static bool jms_lex_comparer_stringChar(void* searchCriteria, void* actualElemen
     return jms_str_eq_ch(searchStr, elementAsCStr[0]);
 }
 
-//bool jms_lex_
-// TODO - finish implementing
+// TODO - 4/23/2025 - refactor this some day so that it's not as long and confusing.
 static JMS_XFER_PTR(jms_vector) jms_lex(
         JMS_BORROWED_PTR(jms_lexer) self,
         JMS_BORROWED_PTR(jms_str) filePath)
@@ -133,11 +132,12 @@ static JMS_XFER_PTR(jms_vector) jms_lex(
     for (size_t i = 0; i < jms_str_len(fileTextWithoutComments); i++)
     {
         char curChar = jms_str_charAt(fileTextWithoutComments, i);
+        char prevChar = jms_str_charAt(fileTextWithoutComments, i - 1) ---- TODO - FIX THIS
 
         if (curChar == '\n')
         {
             lineNum++;
-            column = 0;
+            column = 1;
         }
         else
         {
@@ -146,16 +146,27 @@ static JMS_XFER_PTR(jms_vector) jms_lex(
 
         if (curChar == '\\')
         {
-            if (wasLastCharEscaped)
+            if (i > 0)
             {
-                // We have a double-escaped character, so we need to add it to the word.
-                jms_str_append_cs(wordSoFar, "\\\\");
-                
-                // Add another "1" to the column since we have *two* characters here.
-                //  We've already added a "1" at the beginning of the loop, so this
-                //  will end up moving the column by 2.
-                column++;
-                wasLastCharEscaped = false;
+                char prevChar = jms_str_charAt(fileTextWithoutComments, i - 1);
+
+                if (prevChar == '\\')
+                {
+                    // Erase the last character from the word so far, since it's a double-escaped character.
+                    jms_vec_rem(lexedTokens, i - 1);
+
+                    // We have a double-escaped character, so we need to add it to the word.
+                    jms_str_set_cStr(wordSoFar, "\\\\");
+                    
+                    jms_lex_appendIfNotWhitespace(
+                        lexedTokens,
+                        filePath,
+                        lineNum,
+                        column,
+                        wordSoFar);
+
+                    wasLastCharEscaped = false;
+                }
             }
             else
             {
@@ -231,6 +242,8 @@ static JMS_XFER_PTR(jms_vector) jms_lex(
         else if (curChar == '\r')
         {
             // Ignore carriage returns.
+            // This is a special case for Windows-style line endings.
+            column++;
             continue;
         }
         else if (isspace(curChar))
@@ -266,21 +279,29 @@ static JMS_XFER_PTR(jms_vector) jms_lex(
             
             jms_str_append_ch(wordSoFar, curChar);
 
-            // check if we have a multi-token equal, such as *= or ==.
-            if (jms_vec_find(multiTokenLexemesVec, wordSoFar, jms_lex_comparer_stringChar))
+            if (i > 0)
             {
-                jms_lex_appendIfNotWhitespace(
-                    lexedTokens,
-                    filePath,
-                    lineNum,
-                    column,
-                    wordSoFar);
-            }
-            else if (i != jms_str_len(fileTextWithoutComments) - 1)
-            {
-                if (jms_str_charAt(fileTextWithoutComments, i + 1) != '=')
+                // previous character
+                char                    prevChar            
+                                            = jms_str_charAt(fileTextWithoutComments, i - 1);
+                JMS_OWNED_PTR(jms_str)  prevCharAndCurrentChar
+                                            = jms_str_init_ch(prevChar);
+                
+                jms_str_append_ch(prevCharAndCurrentChar, curChar);
+
+                if (jms_vec_find(multiTokenLexemesVec, prevCharAndCurrentChar, jms_lex_comparer_stringChar))
                 {
-                    // It's not a multi-token lexeme, it's just an '='.
+                    // It's a multi-token lexeme.
+                    jms_lex_appendIfNotWhitespace(
+                        lexedTokens,
+                        filePath,
+                        lineNum,
+                        column,
+                        prevCharAndCurrentChar);
+                }
+                else
+                {
+                    // It's not a multi-token lexeme, it's just a single token ('=').
                     jms_lex_appendIfNotWhitespace(
                         lexedTokens,
                         filePath,
@@ -288,6 +309,8 @@ static JMS_XFER_PTR(jms_vector) jms_lex(
                         column,
                         wordSoFar);
                 }
+
+                free(prevCharAndCurrentChar);
             }
         }
         else

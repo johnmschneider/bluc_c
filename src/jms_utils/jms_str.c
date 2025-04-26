@@ -47,6 +47,22 @@ jms_str* jms_str_init_str(JMS_BORROWED_PTR(jms_str) initialValue)
     return self;
 }
 
+jms_str* jms_str_init_ch(char initialValue)
+{
+    JMS_XFER_PTR(jms_str) self  = malloc(sizeof(jms_str));
+    self->objectBase            = jms_object_init_str("jms_str");
+
+    JMS_OWNED_PTR(char) initialValueStr = malloc(2 * sizeof(char));
+    initialValueStr[0] = initialValue;
+    initialValueStr[1] = '\0';
+
+    jms_str_initHelper(self, initialValueStr);
+
+    free(initialValueStr);
+
+    return self;
+}
+
 static void jms_str_initHelper(
     JMS_OWNED_PTR(jms_str) self,
     JMS_BORROWED_PTR(const char) initialValue)

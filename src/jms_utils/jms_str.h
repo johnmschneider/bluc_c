@@ -24,6 +24,13 @@ jms_str*    jms_str_init(
 jms_str*    jms_str_init_str(
                 JMS_BORROWED_PTR(jms_str) initialValue);
 
+/**
+ * @brief creates a new jms_str initialized with the first character
+ *  set to initialValue.
+ */
+jms_str*    jms_str_init_ch(
+                char initialValue);
+
 void        jms_str_del(
                 JMS_OWNED_PTR(jms_str) self);
 
@@ -98,7 +105,11 @@ bool        jms_str_isWhitespace(jms_str* self);
 bool        jms_str_isEmptyOrWhitespace(jms_str* self);
 
 /**
- * @brief Returns a substring of the string from start to end (inclusive)
+ * @brief Returns a substring of the string from start to end (inclusive). 
+ * <b> Post-conditions: </b><br/>
+ *  - The returned string is a new string that is managed by the caller. <br/>
+ *  - The caller is responsible for freeing the returned string. <br/>
+ *  - The old string has NOT been freed. <br/>
  */
 JMS_XFER_PTR(jms_str) jms_str_substr(jms_str* self, ui32 startIndex, ui32 endIndex);
 
