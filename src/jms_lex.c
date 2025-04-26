@@ -71,10 +71,11 @@ static void jms_lex_appendIfNotWhitespace(
 /// @return Whether the char is equal to the first character of the cString, or not.
 static bool jms_lex_comparer_charCStr(void* searchCriteria, void* actualElement)
 {
-    JMS_BORROWED_PTR(char) searchChar   = (char*) searchCriteria;
+    JMS_BORROWED_PTR(char) searchChar    = (char*) searchCriteria;
     JMS_BORROWED_PTR(char) elementAsCStr = (char*) actualElement;
     
-    return jms_strUtil_cstrEq(elementAsCStr, searchChar);
+    char temp[2] = { *searchChar, '\0' };
+    return jms_strUtil_cstrEq(elementAsCStr, temp);
 }
 
 /// @brief Compares the given jms_str, which should only be a length of 1,
@@ -89,7 +90,10 @@ static bool jms_lex_comparer_stringChar(void* searchCriteria, void* actualElemen
     JMS_BORROWED_PTR(char)
         elementAsCStr = (char*) actualElement;
 
-    return jms_str_eq_ch(searchStr, elementAsCStr[0]);
+    //TODO - delete when done debugging
+    //printf("[%s]: searchStr == `%s`, elementAsCStr == `%c`\n",
+    //       __FUNCTION__, jms_str_cStr(searchStr), elementAsCStr[0]);
+    return jms_str_eq_cStr(searchStr, elementAsCStr);
 }
 
 // TODO - 4/23/2025 - refactor this some day so that it's not as long and confusing.
@@ -100,12 +104,10 @@ static JMS_XFER_PTR(jms_vector) jms_lex(
     JMS_OWNED_PTR(jms_str) fileTextWithoutComments
         = jms_cremover_run(self->fileContents);
 
-    printf("[%s]: fileTextWithoutComments == `%s`\n", __FUNCTION__, jms_str_cStr(fileTextWithoutComments));
+    // printf("[%s]: fileTextWithoutComments == `%s`\n", __FUNCTION__, jms_str_cStr(fileTextWithoutComments));
 
     i32 lineNum = 1;
-
-    // The column that is currently *selected*, not the column right after the current token.
-    i32 column = 0;
+    i32 column = 1;
     
     bool
         wasLastCharEscaped = false;
@@ -121,59 +123,49 @@ static JMS_XFER_PTR(jms_vector) jms_lex(
         multiTokenLexemesVec = jms_vec_init(sizeof(char*));
 
     // "Special character" lexemes which will *definitely* be a single character.
-    jms_vec_addAll(singleTokenLexemesVec, 9, NULL, "(", ")", "{", "}", "[", "]", ";", ",", ".");
+    jms_vec_addAll(singleTokenLexemesVec, 9, NULL,
+                        "(", ")", "{", "}", "[", "]", ";", ",", ".");
 
     // "Special character" lexemes which *may* be multiple characters.
-    jms_vec_addAll(multiTokenLexemesVec, 16, NULL, "=", "==", "!=", "+=", "-=", "*=", "/=", "%=", "<=", ">=", "&&", "||", "++", "--", "\\", "\\\\");
+    jms_vec_addAll(multiTokenLexemesVec, 19, NULL,
+                        "=", "==", "!=", "+=", "-=", "*=", "/=", "%=", "<=", ">=",
+                        "&&", "||", "++", "--", "\\", "\\\\", "\r", "\n", "\t", "!");
 
     JMS_OWNED_PTR(jms_str)
         wordSoFar = jms_str_init("");
 
-    for (size_t i = 0; i < jms_str_len(fileTextWithoutComments); i++)
+    // char value indicating that we're at the start of a file
+    const char      NO_PREVIOUS_CHAR    = '\0';
+
+    // char value indicating that we're at the end of a file
+    const char      NO_NEXT_CHAR        = '\0';
+    const size_t    indexOfLastToken    = jms_str_len(fileTextWithoutComments) - 1;
+
+    // The number of characters to skip lexing.
+    //  This is used by multi-token lexemes to
+    //  skip over chars they've already processed.
+    size_t          charsToSkip        = 0;
+
+    // Loop through the file text, character by character.
+    for (size_t i = 0; i <= indexOfLastToken; i++)
     {
+        if (charsToSkip > 0)
+        {
+            charsToSkip--;
+            continue;
+        }
+
+        // current character
         char curChar = jms_str_charAt(fileTextWithoutComments, i);
-        char prevChar = jms_str_charAt(fileTextWithoutComments, i - 1) ---- TODO - FIX THIS
 
-        if (curChar == '\n')
-        {
-            lineNum++;
-            column = 1;
-        }
-        else
-        {
-            column++;
-        }
+        // previous character
+        char prevChar = (i > 0)
+                            ? jms_str_charAt(fileTextWithoutComments, i - 1)
+                            : NO_PREVIOUS_CHAR;
 
-        if (curChar == '\\')
-        {
-            if (i > 0)
-            {
-                char prevChar = jms_str_charAt(fileTextWithoutComments, i - 1);
-
-                if (prevChar == '\\')
-                {
-                    // Erase the last character from the word so far, since it's a double-escaped character.
-                    jms_vec_rem(lexedTokens, i - 1);
-
-                    // We have a double-escaped character, so we need to add it to the word.
-                    jms_str_set_cStr(wordSoFar, "\\\\");
-                    
-                    jms_lex_appendIfNotWhitespace(
-                        lexedTokens,
-                        filePath,
-                        lineNum,
-                        column,
-                        wordSoFar);
-
-                    wasLastCharEscaped = false;
-                }
-            }
-            else
-            {
-                wasLastCharEscaped = true;
-                continue;
-            }
-        }
+        char nextChar = (i < indexOfLastToken)
+                            ? jms_str_charAt(fileTextWithoutComments, i + 1)
+                            : NO_PREVIOUS_CHAR;
         
         if (isInString)
         {
@@ -184,13 +176,13 @@ static JMS_XFER_PTR(jms_vector) jms_lex(
                     // We have an escaped quote, so we need to add it to the word.
                     jms_str_append_ch(wordSoFar, curChar);
 
-                    printf("[%s]: got here #1, word ==`%s`", __FUNCTION__, jms_str_cStr(wordSoFar));
+                    printf("[%s]: got here #1, word ==`%s`\n", __FUNCTION__, jms_str_cStr(wordSoFar));
                     wasLastCharEscaped = false;
                 }
                 else
                 {
                     // We have the end of a string literal, so we need to add it to the word.
-                    printf("[%s]: got here #2, word == `%s`", __FUNCTION__, jms_str_cStr(wordSoFar));
+                    printf("[%s]: got here #2, word == `%s`\n", __FUNCTION__, jms_str_cStr(wordSoFar));
 
                     jms_lex_appendIfNotWhitespace(
                         lexedTokens,
@@ -243,7 +235,9 @@ static JMS_XFER_PTR(jms_vector) jms_lex(
         {
             // Ignore carriage returns.
             // This is a special case for Windows-style line endings.
-            column++;
+            //
+            // This is only skipping *actual* carriage returns, not
+            //  carriage returns that are embedded in string literals.
             continue;
         }
         else if (isspace(curChar))
@@ -252,9 +246,10 @@ static JMS_XFER_PTR(jms_vector) jms_lex(
                 lexedTokens,
                 filePath,
                 lineNum,
-                column,
+                column - 1, // We're adding the *previous* token.
                 wordSoFar);
         }
+        // else if the char is in the "single token lexemes" vector
         else if (jms_vec_find(singleTokenLexemesVec, &curChar, jms_lex_comparer_charCStr))
         {
             jms_lex_appendIfNotWhitespace(
@@ -264,7 +259,11 @@ static JMS_XFER_PTR(jms_vector) jms_lex(
                 column,
                 wordSoFar);
 
+            // wordSoFar should be an empty string at this point.
             jms_str_append_ch(wordSoFar, curChar);
+
+            printf("[%s]: found a single token lexeme, word == `%s`, line == %d, col == %d\n",
+                     __FUNCTION__, jms_str_cStr(wordSoFar), lineNum, column);
 
             jms_lex_appendIfNotWhitespace(
                 lexedTokens,
@@ -273,85 +272,82 @@ static JMS_XFER_PTR(jms_vector) jms_lex(
                 column,
                 wordSoFar);
         }
-        else if (curChar == '=')
+        else
         {
-            // "=" is a special case, because it can be a single token or part of a multi-token lexeme.
-            
-            jms_str_append_ch(wordSoFar, curChar);
+            JMS_OWNED_PTR(jms_str) curCharAndNextChar
+                = jms_str_init_ch(curChar);
 
-            if (i > 0)
+            jms_str_append_ch(curCharAndNextChar, nextChar);
+
+            printf("[%s]: curChar == `%c`, nextChar == `%c`, curCharAndNextChar == `%s`\n",
+                     __FUNCTION__, curChar, nextChar, jms_str_cStr(curCharAndNextChar));
+
+            // Check if a token type consisting of the current character and the next character
+            //  are in the multi-token lexemes vector.
+            if (jms_vec_find(multiTokenLexemesVec, curCharAndNextChar, jms_lex_comparer_stringChar))
             {
-                // previous character
-                char                    prevChar            
-                                            = jms_str_charAt(fileTextWithoutComments, i - 1);
-                JMS_OWNED_PTR(jms_str)  prevCharAndCurrentChar
-                                            = jms_str_init_ch(prevChar);
-                
-                jms_str_append_ch(prevCharAndCurrentChar, curChar);
+                // Add the word that was detected before this multi-token lexeme.
+                jms_lex_appendIfNotWhitespace(
+                    lexedTokens,
+                    filePath,
+                    lineNum,
+                    column,
+                    wordSoFar);
 
-                if (jms_vec_find(multiTokenLexemesVec, prevCharAndCurrentChar, jms_lex_comparer_stringChar))
-                {
-                    // It's a multi-token lexeme.
-                    jms_lex_appendIfNotWhitespace(
-                        lexedTokens,
-                        filePath,
-                        lineNum,
-                        column,
-                        prevCharAndCurrentChar);
-                }
-                else
-                {
-                    // It's not a multi-token lexeme, it's just a single token ('=').
-                    jms_lex_appendIfNotWhitespace(
-                        lexedTokens,
-                        filePath,
-                        lineNum,
-                        column,
-                        wordSoFar);
-                }
+                // We have a multi-token lexeme, so we need to add it to the word.
+                jms_str_set_cStr_s(wordSoFar, curCharAndNextChar);
 
-                free(prevCharAndCurrentChar);
+                printf("[%s]: found a multi token lexeme, word == `%s`, line == %d, col == %d\n",
+                        __FUNCTION__, jms_str_cStr(wordSoFar), lineNum, column);
+
+                jms_lex_appendIfNotWhitespace(
+                    lexedTokens,
+                    filePath,
+                    lineNum,
+                    column,
+                    wordSoFar);
+
+                // We need to skip the next character since we've already processed it.
+                charsToSkip = 1;
             }
+            // else if the previous token was NOT in the "multi token lexemes" vector
+            //      [so we don't incorrectly match a "single" token too early]
+            //  AND the current token IS in the "multi token lexemes" vector..
+            else if (
+                !jms_vec_find(multiTokenLexemesVec, &prevChar, jms_lex_comparer_charCStr)
+                && jms_vec_find(multiTokenLexemesVec, &curChar, jms_lex_comparer_charCStr))
+            {
+                // We have a single token lexeme which is stored in the "multi token lexemes" vector,
+                //  so we need to add it to the tokens list
+                jms_str_append_ch(wordSoFar, curChar);
+
+                printf("[%s]: found a single-tok lexeme in multi-tok vector, word == `%s`, line == %d, col == %d\n",
+                     __FUNCTION__, jms_str_cStr(wordSoFar), lineNum, column);
+
+                jms_lex_appendIfNotWhitespace(
+                    lexedTokens,
+                    filePath,
+                    lineNum,
+                    column,
+                    wordSoFar);
+            }
+            // We're just on a regular character, so we need to add it to the word.
+            else
+            {
+                jms_str_append_ch(wordSoFar, curChar);
+            }
+
+            jms_str_del(curCharAndNextChar);
+        }
+
+        if (curChar == '\n')
+        {
+            lineNum++;
+            column = 1;
         }
         else
         {
-            if (jms_vec_find(multiTokenLexemesVec, wordSoFar, jms_lex_comparer_stringChar))
-            {
-                jms_lex_appendIfNotWhitespace(
-                    lexedTokens,
-                    filePath,
-                    lineNum,
-                    column,
-                    wordSoFar);
-            }
-            else if (isInString && curChar == '\"' && !wasLastCharEscaped)
-            {
-                jms_lex_appendIfNotWhitespace(
-                    lexedTokens,
-                    filePath,
-                    lineNum,
-                    column,
-                    wordSoFar);
-
-                jms_str_append_ch(wordSoFar, curChar);
-
-                isInString = false;
-            }
-            else if (!isInString && curChar == '\"')
-            {
-                jms_lex_appendIfNotWhitespace(
-                    lexedTokens,
-                    filePath,
-                    lineNum,
-                    column,
-                    wordSoFar);
-
-                jms_str_append_cs(wordSoFar, "\"");
-
-                isInString = true;
-            }
-
-            jms_str_append_ch(wordSoFar, curChar);
+            column++;
         }
     }
 

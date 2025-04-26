@@ -54,6 +54,9 @@ public class Test
         // - assignment checker maybe?
         // - maybe a parse error (probably)
         "a string" = 2;
+
+        i32 c = 1;
+        bool test2 = a >= b && a > c;
     }
 
     public static fn Main()

@@ -194,6 +194,11 @@ void jms_str_set_cStr(jms_str* self, const char* newValue)
     strncpy(self->value, newValue, (int32_t) length);
 }
 
+void jms_str_set_cStr_s(jms_str* self, JMS_BORROWED_PTR(jms_str) newValue)
+{
+    jms_str_set_cStr(self, jms_str_cStr(newValue));
+}
+
 bool jms_str_isEmpty(jms_str *self)
 {
     return self->length == 0;

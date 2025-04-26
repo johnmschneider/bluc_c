@@ -90,6 +90,11 @@ char        jms_str_charAt(jms_str* self, int32_t index);
 void        jms_str_set_cStr(jms_str* self, const char* newValue);
 
 /**
+ * @brief resizes the string and sets the value to newValue
+ */
+void        jms_str_set_cStr_s(jms_str* self, JMS_BORROWED_PTR(jms_str) newValue);
+
+/**
  * @brief Returns whether the string is an empty string (i.e., == "")
  */
 bool        jms_str_isEmpty(jms_str* self);
