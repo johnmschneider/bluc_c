@@ -37,9 +37,4 @@ void jms_typeInfo_setStaticCtorCalled(JMS_OWNED_PTR(jms_typeInfo) self, bool val
  */
 JMS_BORROWED_PTR(const char) jms_typeInfo_typeName(JMS_BORROWED_PTR(jms_typeInfo) self);
 
-/**
-* @brief deletes a typeInfo object and frees the memory
-*/
-void jms_typeInfo_del(JMS_OWNED_PTR(jms_typeInfo) self);
-
 #endif // JMS_TYPEINFO_H
