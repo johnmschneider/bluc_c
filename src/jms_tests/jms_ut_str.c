@@ -11,7 +11,7 @@ static void jms_ut_strInit(void)
     jms_str* test = jms_str_init(testVal);
 
     JMS_ASSERT(jms_str_len(test) == 7,                  __FUNCTION__);
-    JMS_ASSERT(jms_cstrEq(jms_str_cStr(test), testVal),  __FUNCTION__);
+    JMS_ASSERT(jms_strUtil_cstrEq(jms_str_cStr(test), testVal),  __FUNCTION__);
 
     jms_str_del(test);
 }
@@ -130,9 +130,79 @@ static void jms_ut_str_setCStr()
     jms_str_set_cStr(test, testVal2);
 
     JMS_ASSERT(jms_str_eq_cStr(test, "eggplant"), __FUNCTION__);
-    printf("test == %s, cstr == %s", jms_str_cStr(test), testVal2);
 
     jms_str_del(test);
+}
+
+static void jms_ut_str_strIsEmpty()
+{
+    jms_str* test = jms_str_init("");
+
+    JMS_ASSERT(jms_str_isEmpty(test), __FUNCTION__);
+
+    jms_str_del(test);
+}
+
+static void jms_ut_str_strIsNotEmpty()
+{
+    jms_str* test = jms_str_init("pizza");
+
+    JMS_ASSERT_FAIL(jms_str_isEmpty(test), __FUNCTION__);
+
+    jms_str_del(test);
+}
+
+static void jms_ut_str_IsWhitespaceReturnsTrue()
+{
+    jms_str* oneWhitespace      = jms_str_init(" ");
+    jms_str* severalWhitespaces = jms_str_init("\n\t ");
+
+    JMS_ASSERT(
+        jms_str_isWhitespace(oneWhitespace),
+        __FUNCTION__);
+    JMS_ASSERT(
+        jms_str_isWhitespace(severalWhitespaces),
+        __FUNCTION__);
+
+    jms_str_del(oneWhitespace);
+    jms_str_del(severalWhitespaces);
+}
+
+static void jms_ut_str_IsWhitespaceReturnsFalse()
+{
+    jms_str* noWhitespaces
+        = jms_str_init("buffalo_sauce");
+
+    jms_str* oneWhitespaceBefore
+        = jms_str_init(" a");
+
+    jms_str* twoWhitespacesBefore
+        = jms_str_init("\n\t x");
+
+    jms_str* oneWhitespaceBetween
+        = jms_str_init("buffalo sauce");
+
+
+    JMS_ASSERT_FAIL(
+        jms_str_isWhitespace(noWhitespaces),
+        __FUNCTION__);
+
+    JMS_ASSERT_FAIL(
+        jms_str_isWhitespace(oneWhitespaceBefore),
+        __FUNCTION__);
+
+    JMS_ASSERT_FAIL(
+        jms_str_isWhitespace(twoWhitespacesBefore),
+        __FUNCTION__);
+        
+    JMS_ASSERT_FAIL(
+        jms_str_isWhitespace(oneWhitespaceBetween),
+        __FUNCTION__);
+
+    jms_str_del(noWhitespaces);
+    jms_str_del(oneWhitespaceBefore);
+    jms_str_del(twoWhitespacesBefore);
+    jms_str_del(oneWhitespaceBetween);
 }
 
 void jms_ut_str(void)
@@ -151,4 +221,11 @@ void jms_ut_str(void)
     jms_ut_str_len();
     jms_ut_str_charAt();
     jms_ut_str_setCStr();
+    jms_ut_str_strIsEmpty();
+    jms_ut_str_strIsNotEmpty();
+    
+    printf("\n");
+    jms_ut_str_IsWhitespaceReturnsTrue();
+    jms_ut_str_IsWhitespaceReturnsFalse();
+    printf("\n");
 }

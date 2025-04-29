@@ -31,7 +31,7 @@ static void jms_ut_vec_elemCount(void)
     {
         int* intTest = malloc(sizeof(int));
         *intTest = testStartingValue + i;
-        jms_vec_add(vec, intTest);
+        jms_vec_add(vec, intTest, jms_vec_static_defaultDestructor);
     }
 
     JMS_ASSERT(jms_vec_elemCount(vec) == 5, __FUNCTION__);
@@ -49,7 +49,7 @@ static void jms_ut_vec_add_forceExpand(void)
     {
         int* intTest2 = malloc(sizeof(int));
         *intTest2 = testStartingValue + i;
-        jms_vec_add(vec, intTest2);
+        jms_vec_add(vec, intTest2, jms_vec_static_defaultDestructor);
     }
 
     int* vecIndex0 = (int*) jms_vec_get(vec, 0);
@@ -73,10 +73,10 @@ static void jms_ut_vec_add(void)
     int* intTest    = malloc(sizeof(int));
 
     *intTest = 452;
-    jms_vec_add(vec, intTest);
+    jms_vec_add(vec, intTest, jms_vec_static_defaultDestructor);
 
-    int* vecIndex0 = (int*) jms_vec_get(vec, 0);
-    JMS_ASSERT((*intTest) == (*vecIndex0), __FUNCTION__);
+    int* elemAtIndex0 = (int*) jms_vec_get(vec, 0);
+    JMS_ASSERT((*intTest) == (*elemAtIndex0), __FUNCTION__);
     jms_vec_del(vec);
 
     printf("\n");
@@ -89,7 +89,7 @@ static void jms_ut_vec_get(void)
     int* intTest    = malloc(sizeof(int));
 
     *intTest = 457;
-    jms_vec_add(vec, intTest);
+    jms_vec_add(vec, intTest, jms_vec_static_defaultDestructor);
 
     int* vecIndex0 = (int*) jms_vec_get(vec, 0);
     JMS_ASSERT((*intTest) == (*vecIndex0), __FUNCTION__);
@@ -104,7 +104,7 @@ static void jms_ut_vec_rem(void)
     {
         char* charTest  = malloc(sizeof(char));
         *charTest = i;
-        jms_vec_add(vec, charTest);
+        jms_vec_add(vec, charTest, jms_vec_static_defaultDestructor);
     }
 
     int lastIndex = jms_vec_elemCount(vec) - 1;

@@ -54,7 +54,7 @@ static void jms_handleSpace(jms_lexer* self)
     if (!self->lastCharWasSpace && !self->lastCharWasString && 
                 self->i != 0)
     {
-        char* trimmedStrOnHeap = jms_substrToHeap(self->tokenBuffer, 
+        char* trimmedStrOnHeap = jms_strUtil_substrToHeap(self->tokenBuffer, 
             self->tokStart, self->i - 1);
         jms_vec_add(self->lexedTokens, trimmedStrOnHeap);
 
@@ -81,7 +81,7 @@ static void jms_handleNotSpace(jms_lexer* self)
     {
         // end of string
 
-        char* trimmedStrOnHeap = jms_substrToHeap(
+        char* trimmedStrOnHeap = jms_strUtil_substrToHeap(
             self->tokenBuffer, self->tokStart, self->i);
         jms_vec_add(self->lexedTokens, trimmedStrOnHeap);
 
@@ -98,7 +98,7 @@ static void jms_pushTokenIfItsReady(jms_lexer* self)
     if (!self->lastCharWasSpace && self->i != 0)
     {
         // add the very last token
-        char* trimmedStrOnHeap = jms_substrToHeap(self->tokenBuffer, 
+        char* trimmedStrOnHeap = jms_strUtil_substrToHeap(self->tokenBuffer, 
             self->tokStart, self->i - 1);
         jms_vec_add(self->lexedTokens, trimmedStrOnHeap);
     }

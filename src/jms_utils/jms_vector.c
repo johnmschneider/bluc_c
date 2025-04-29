@@ -1,6 +1,7 @@
 #include <stdlib.h>
+#include <stdarg.h>
 #include "jms_vector.h"
-#include "jms_vector.h"
+#include "stdbool.h"
 
 typedef struct jms_vec_chunk
 {
@@ -8,6 +9,11 @@ typedef struct jms_vec_chunk
      * NULL if not yet initialized
      */
     void* data;
+
+    /**
+     * Destructor for any given element of the data. If NULL, then no destructor is called.
+     */
+    void (*destructor) (void* self);
 } jms_vec_chunk;
 
 
@@ -40,6 +46,7 @@ struct jms_vector* jms_vec_init(int32_t elemSize)
     for (int32_t i = 0; i < startElemStorage; i++)
     {
         vec->elements[i].data = NULL;
+        vec->elements[i].destructor = NULL;
     }
 
     return vec;
@@ -47,9 +54,26 @@ struct jms_vector* jms_vec_init(int32_t elemSize)
 
 void jms_vec_del(jms_vector* self)
 {
+    for (i32 i = 0; i < self->lastElemIndex; i++)
+    {
+        JMS_BORROWED_PTR(jms_vec_chunk) chunk
+            = &self->elements[i];
+
+        if (chunk->data != NULL
+                && chunk->destructor != NULL)
+        {
+            chunk->destructor(chunk->data);
+        }
+    }
+
     free(self->elements);
     self->elements = NULL;
 
+    free(self);
+}
+
+void jms_vec_static_defaultDestructor(void* self)
+{
     free(self);
 }
 
@@ -63,20 +87,27 @@ int32_t jms_vec_capacity(jms_vector* self)
     return self->maxElems;
 }
 
+/**
+ * @brief Allocates more space for the vector.
+ *<b> PRECONDITIONS:<b/><br/>
+ *  - self->elements[self->lastElemIndex] is not yet populated with data.
+ */
 static void jms_vec_allocMoreSpace(jms_vector* self)
 {
-    int32_t newestElem = self->lastElemIndex;
-    self->maxElems *= 2;
-    self->elements = realloc(self->elements, self->maxElems * 
-        sizeof(jms_vec_chunk));
+    self->maxElems
+        *= 2;
+    self->elements
+        = realloc(
+            self->elements,
+            self->maxElems * sizeof(jms_vec_chunk));
 
-    for (int32_t i = newestElem; i < self->lastElemIndex; i++)
+    for (i32 i = self->lastElemIndex; i < self->maxElems; i++)
     {
         self->elements[i].data = NULL;
     }
 }
 
-void jms_vec_add(jms_vector* self, void* element)
+void jms_vec_add(jms_vector* self, void* element, void (*destructor) (void* self))
 {
     self->lastElemIndex++;
 
@@ -85,12 +116,52 @@ void jms_vec_add(jms_vector* self, void* element)
         jms_vec_allocMoreSpace(self);
     }
 
-    self->elements[self->lastElemIndex].data = element;
+    JMS_BORROWED_PTR(jms_vec_chunk) chunk
+        = &self->elements[self->lastElemIndex];
+    chunk->data
+        = element;
+    chunk->destructor
+        = destructor;
+}
+
+void jms_vec_addAll(jms_vector* self, i32 count, void (*destructor) (void* self), ...)
+{
+    va_list args;
+    va_start(args, destructor);
+
+    for (i32 i = 0; i < count; i++)
+    {
+        void* currentArg = va_arg(args, void*);
+        jms_vec_add(self, currentArg, destructor);
+    }
+
+    va_end(args);
 }
 
 void* jms_vec_get(jms_vector* self, int32_t index)
 {
+    if (index > self->lastElemIndex)
+    {
+        return NULL;
+    }
+    
     return self->elements[index].data;
+}
+
+void* jms_vec_find(jms_vector* self, void* searchCriteria, bool (*comparer)(void*, void*))
+{
+    for (int32_t i = 0; i <= self->lastElemIndex; i++)
+    {
+        void* actualElement = self->elements[i].data;
+        bool isEqual = comparer(searchCriteria, actualElement);
+
+        if (isEqual)
+        {
+            return actualElement;
+        }
+    }
+
+    return NULL;
 }
 
 /**
@@ -104,6 +175,8 @@ static void jms_vec_shiftLeft(jms_vector* self, int32_t index)
         self->elements[i - 1].data = self->elements[i].data;
     }
 
+    // If we didn't delete this, we'd just end up with a duplicate
+    //  reference to the pointer in maxElems - 2.
     self->elements[self->maxElems - 1].data = NULL;
 }
 
