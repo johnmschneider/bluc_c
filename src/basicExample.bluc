@@ -1,0 +1,24 @@
+public class Example
+{
+    private int a = 1;
+
+    public fn printResult()
+    {
+        println("hello, world");
+    }
+
+    public fn increment()
+    {
+        this.a++;
+    }
+}
+
+public fn main() : i32
+{
+    // "test" is declared on the stack -- no need to free()
+    var test = Example();
+
+    test.printResult();
+    test.increment();
+    test.printResult();
+}
