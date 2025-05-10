@@ -1,13 +1,16 @@
 #include "jms_parser.h"
+#include "../jms_utils/jms_stdint.h"
+#include "jms_astNode.h"
 #include <stdlib.h>
 #include <stdio.h>
 
 struct jms_parser
 {
-    jms_vector* tokens;
+    JMS_BORROWED_PTR(jms_vector) tokens;
 };
 
-jms_parser* jms_parser_init(jms_vector* lexedTokens)
+JMS_XFER_PTR(jms_parser)
+    jms_parser_init(    JMS_BORROWED_PTR(jms_vector) lexedTokens)
 {
     if (!lexedTokens)
     {
@@ -15,18 +18,21 @@ jms_parser* jms_parser_init(jms_vector* lexedTokens)
         return NULL;
     }
 
-    jms_parser* parser = (jms_parser*)malloc(sizeof(jms_parser));
-    if (!parser) {
+    jms_parser* self = (jms_parser*)malloc(sizeof(jms_parser));
+    if (!self)
+    {
         fprintf(stderr, "Error: Failed to allocate memory for jms_parser.\n");
         return NULL;
     }
 
-    parser->tokens = lexedTokens;
-    return parser;
+    self->tokens = lexedTokens;
+    return self;
 }
 
-void jms_parser_del(jms_parser* self) {
-    if (!self) {
+void jms_parser_del(jms_parser* self)
+{
+    if (!self)
+    {
         return;
     }
 
@@ -34,20 +40,32 @@ void jms_parser_del(jms_parser* self) {
     free(self);
 }
 
-void jms_parser_parse(jms_parser* self) {
-    if (!self || !self->tokens) {
+JMS_XFER_PTR(jms_vector) jms_parser_parse(jms_parser* self)
+{
+    if (!self || !self->tokens)
+    {
         fprintf(stderr, "Error: Invalid parser or tokens.\n");
-        return;
+        return NULL;
     }
 
-    // Example parsing logic (to be replaced with actual implementation)
-    printf("Parsing %zu tokens...\n", jms_vector_size(self->tokens));
+    // TODO: Example parsing logic (to be replaced with actual implementation)
+    JMS_XFER_PTR(jms_vector)
+        ast = jms_vec_init(sizeof(jms_astNode*));
+    i32
+        tokenCount = jms_vec_elemCount(self->tokens);
 
-    for (size_t i = 0; i < jms_vector_size(self->tokens); ++i) {
-        void* token = jms_vector_get(self->tokens, i);
+    printf("Parsing %d tokens...\n", tokenCount);
+
+    for (size_t i = 0; i < tokenCount; ++i)
+    {
+        void* token = jms_vec_get(self->tokens, i);
+
         // Process the token (placeholder logic)
         printf("Processing token %zu...\n", i);
     }
 
     printf("Parsing completed.\n");
+
+    // Return the AST (currently empty)
+    return ast;
 }

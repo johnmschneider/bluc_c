@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "jms_oop_utils/jms_static_ctors_dtors.h"
+#include "jms_parse/jms_parser.h"
 #include "jms_token.h"
 #include "jms_utils/jms_vector.h"
 #include "jms_tests/jms_unitTests.h"
@@ -8,7 +9,6 @@
 #include "jms_utils/jms_str.h"
 
 #define JMS_UNIT_TESTS_ON
-#define JMS_DEBUG_FILENAME "src/test.bluc"
 
 int run_program(int argc, char* argv[]);
 
@@ -30,10 +30,6 @@ int run_program(int argc, char* argv[])
     fflush(stdout);
     printf("main: after jms_unitTests_run\n");
 
-
-#ifdef JMS_DEBUG_FILENAME
-    char* filePath = JMS_DEBUG_FILENAME;
-#else
     if (argc < 1)
     {
         fprintf(stderr, "no file specified\n");
@@ -42,7 +38,6 @@ int run_program(int argc, char* argv[])
 
     printf("filePath == %s\n", argv[1]);
     char*       filePath = argv[1];
-#endif
 
     printf("main: before lexFile\n");
 
@@ -73,8 +68,6 @@ int run_program(int argc, char* argv[])
             printf("main: token %zu, at (line %d, col %d): %s\n",
                         i, jms_tok_getLineNum(elem), jms_tok_getColNum(elem) , cStr);
         }
-
-        jms_vec_del(lexedTokens);
     }
     else
     {
@@ -83,10 +76,27 @@ int run_program(int argc, char* argv[])
     }
     printf("main: after print loop\n");
     
+    JMS_OWNED_PTR(jms_parser)
+        parser = jms_parser_init(lexedTokens);
+
+    if (parser != NULL)
+    {
+        jms_parser_parse(parser);
+        jms_parser_del(parser);
+    }
+    else
+    {
+        fprintf(stderr, "[%s]: Error creating parser\n",
+            __func__);
+    }
+
+    jms_vec_del(lexedTokens);
     jms_lex_del(lexer);
 
     fflush(stdout);
     fflush(stderr);
     
+    printf("TESTING THAT VS CODE UPDATED FILE\n");
+
     return 0;
 }

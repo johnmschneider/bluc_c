@@ -146,7 +146,7 @@ static JMS_XFER_PTR(jms_vector) jms_lex(
     // Loop through the file text, character by character.
     for (size_t i = 0; i <= indexOfLastToken; i++)
     {
-        if (charsToSkip > 0)
+        if (charsToSkip > 0 && i < indexOfLastToken)
         {
             charsToSkip--;
             continue;
@@ -163,7 +163,7 @@ static JMS_XFER_PTR(jms_vector) jms_lex(
         char nextChar = (i < indexOfLastToken)
                             ? jms_str_charAt(fileTextWithoutComments, i + 1)
                             : NO_PREVIOUS_CHAR;
-        
+                            
         if (isInString)
         {
             if (curChar == '\"')
