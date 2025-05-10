@@ -89,10 +89,7 @@ static bool jms_lex_comparer_stringChar(void* searchCriteria, void* actualElemen
         searchStr = (jms_str*) searchCriteria;
     JMS_BORROWED_PTR(char)
         elementAsCStr = (char*) actualElement;
-
-    //TODO - delete when done debugging
-    //printf("[%s]: searchStr == `%s`, elementAsCStr == `%c`\n",
-    //       __FUNCTION__, jms_str_cStr(searchStr), elementAsCStr[0]);
+        
     return jms_str_eq_cStr(searchStr, elementAsCStr);
 }
 

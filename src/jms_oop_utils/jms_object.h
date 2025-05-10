@@ -30,4 +30,6 @@ void jms_object_del(JMS_OWNED_PTR(jms_object) self);
  */
 JMS_BORROWED_PTR(jms_object) jms_object_base(JMS_BORROWED_PTR(jms_object) self);
 
+JMS_BORROWED_PTR(jms_object) jms_typeof(JMS_BORROWED_PTR(jms_object) self);
+
 #endif // JMS_OBJECT_H
