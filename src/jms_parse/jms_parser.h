@@ -10,7 +10,8 @@ JMS_XFER_PTR(jms_parser)    jms_parser_init (JMS_BORROWED_PTR(jms_vector) lexedT
 void                        jms_parser_del  (jms_parser* self);
 
 /**
- * @brief Parses the tokens in the lexedTokens of the parser.
+ * @brief Calls the vtable for this parser (or sub-parser) and parses
+ *  as many tokens as possible to finish matching this parser's grammar rule.
  * 
  * @param self The parser instance.
  * @return A vector jms_astNode representing the abstract syntax tree.

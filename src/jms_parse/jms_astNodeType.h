@@ -3,8 +3,9 @@
 
 enum jms_astNodeType
 {
-    jms_astType_funcOpen,
-    jms_astType_funcClose
+    jms_astType_block,
+    jms_astType_class,
+    jms_astType_function,
 };
 
 typedef enum jms_astNodeType jms_astNodeType;

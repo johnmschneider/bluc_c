@@ -76,6 +76,9 @@ int run_program(int argc, char* argv[])
     }
     printf("main: after print loop\n");
     
+    fflush(stdout);
+    fflush(stderr);
+
     JMS_OWNED_PTR(jms_parser)
         parser = jms_parser_init(lexedTokens);
 

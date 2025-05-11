@@ -6,8 +6,43 @@
 
 struct jms_parser
 {
-    JMS_BORROWED_PTR(jms_vector) tokens;
+    JMS_BORROWED_PTR(jms_vector)
+        tokens;
+    JMS_OWNED_PTR(jms_vector)
+        subParsers;
+    ui32
+        curTokenIndex;
+
+    /**
+     * The precendence of this parser. Lower numbers
+     *  are higher precedence. Higher numbers are lower
+     *  precedence (i.e. 0 is the highest precedence).
+     */
+    ui32
+        precedence;
+
+    // ==== VTable below. ====
+
+    /**
+     * @brief Parses as many tokens as possible to finish matching
+     *  this parser's grammar rule.
+     */
+    JMS_OWNED_FPTR(JMS_XFER_PTR(jms_vector),
+        parse, jms_parser* self);
+    
+    /**
+     * @brief Returns whether this current parser was able to match a
+     *  grammar rule at the current token index.
+     */
+    JMS_OWNED_FPTR(bool,
+        canMatchRuleAtThisLocation, jms_parser* self);
+        
+    // ==== End of VTable ====
 };
+
+static JMS_XFER_PTR(jms_vector) jms_parser_parseBase(jms_parser* self);
+
+static bool jms_parser_canParseRule(jms_parser* self);
 
 JMS_XFER_PTR(jms_parser)
     jms_parser_init(    JMS_BORROWED_PTR(jms_vector) lexedTokens)
@@ -26,6 +61,24 @@ JMS_XFER_PTR(jms_parser)
     }
 
     self->tokens = lexedTokens;
+    self->subParsers = jms_vec_init(sizeof(jms_parser*));
+    {
+        // TODO: add subparsers to the vector
+    }
+
+    self->curTokenIndex = 0;
+    
+    // The base parser itself has the highest precedence.
+    //  It shouldn't matter, as the base parser shouldn't
+    //  be added to the list of "subparsers".
+    self->precedence = 0;
+
+    // Set the default vtable for this parser. If a sub-class
+    //  overrides this, it will do so after this init function
+    //  has run.
+    self->parse = &jms_parser_parseBase;
+    self->canMatchRuleAtThisLocation = &jms_parser_canParseRule;
+
     return self;
 }
 
@@ -40,7 +93,19 @@ void jms_parser_del(jms_parser* self)
     free(self);
 }
 
-JMS_XFER_PTR(jms_vector) jms_parser_parse(jms_parser* self)
+static bool jms_parser_canParseRule(jms_parser* self)
+{
+    // The base parser should always be able to match a rule.
+    return true;
+}
+
+/**
+ * @brief Parses the tokens in the lexedTokens of the parser.
+ * 
+ * @param self The parser instance.
+ * @return A vector jms_astNode representing the abstract syntax tree.
+ */
+JMS_XFER_PTR(jms_vector) jms_parser_parseBase(jms_parser* self)
 {
     if (!self || !self->tokens)
     {
@@ -68,4 +133,16 @@ JMS_XFER_PTR(jms_vector) jms_parser_parse(jms_parser* self)
 
     // Return the AST (currently empty)
     return ast;
+}
+
+JMS_XFER_PTR(jms_vector) jms_parser_parse(jms_parser* self)
+{
+    if (!self)
+    {
+        fprintf(stderr, "Error: Invalid parser.\n");
+        return NULL;
+    }
+
+    // Call the parse function from the vtable
+    return self->parse(self);
 }

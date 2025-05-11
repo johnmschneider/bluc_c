@@ -55,6 +55,14 @@ void*       jms_vec_get         (jms_vector* self, i32 index);
 void*       jms_vec_find        (jms_vector* self, void* searchCriteria, bool (*comparer)(void*, void*));
 
 /**
+ * @brief Finds all elements in the vector that match the given searchCriteria and comparison function.
+ *              The format/type of searchCriteria is determined by the comparison function.
+ * @return A new vector representing a slice of all matching elements. Calling code, DO NOT free the
+ *              returned vector, it is managed by the vector instance `self`.
+ */
+JMS_BORROWED_PTR(jms_vector)
+            jms_vec_where     (jms_vector* self, void* searchCriteria, bool (*comparer)(void*, void*));
+/**
  * @brief Delete the value at *index* from the vector. Free's the pointer.
  */
 void        jms_vec_rem         (JMS_BORROWED_PTR(jms_vector) self, i32 index);

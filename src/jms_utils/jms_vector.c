@@ -31,9 +31,28 @@ struct jms_vector
      */
     int32_t maxElems;
     jms_vec_chunk* elements;
+
+    /**
+     * Whether or not to run the destructor and free each element of the vector
+     *  when the vector is deleted.
+     */
+    bool doFreeElementsOnDelete;
+
+    /**
+     * A vector storing the "queries" that have been run on this vector (such as .where(xxx)).
+     *  This is used to free the queries when the vector is deleted. We only need to free the
+     *  vector itself, not the elements, because the elements in the query are managed by this
+     *  vector.
+     */
+    jms_vector* queryVectors;
 };
 
-struct jms_vector* jms_vec_init(int32_t elemSize)
+/**
+ * @brief Initializes the vector.
+ * @param elemSize - the size of each element in the vector.
+ * @param isQueryVector - whether or not this vector is a query vector (i.e. a slice of another vector).
+ */
+static struct jms_vector* jms_vec_init_internal(int32_t elemSize, bool isQueryVector)
 {
     int32_t     startElemStorage = 10;
     jms_vector* vec = malloc(sizeof(struct jms_vector));
@@ -49,20 +68,36 @@ struct jms_vector* jms_vec_init(int32_t elemSize)
         vec->elements[i].destructor = NULL;
     }
 
+    vec->doFreeElementsOnDelete = true;
+
+    // Don't infinitely recurse.
+    if (!isQueryVector)
+    {
+        vec->queryVectors = jms_vec_init_internal(sizeof(jms_vector*), true);
+    }
+
     return vec;
+}
+
+struct jms_vector* jms_vec_init(int32_t elemSize)
+{
+    return jms_vec_init_internal(elemSize, false);
 }
 
 void jms_vec_del(jms_vector* self)
 {
-    for (i32 i = 0; i < self->lastElemIndex; i++)
+    if (self->doFreeElementsOnDelete)
     {
-        JMS_BORROWED_PTR(jms_vec_chunk) chunk
-            = &self->elements[i];
-
-        if (chunk->data != NULL
-                && chunk->destructor != NULL)
+        for (i32 i = 0; i < self->lastElemIndex; i++)
         {
-            chunk->destructor(chunk->data);
+            JMS_BORROWED_PTR(jms_vec_chunk) chunk
+                = &self->elements[i];
+
+            if (chunk->data != NULL
+                    && chunk->destructor != NULL)
+            {
+                chunk->destructor(chunk->data);
+            }
         }
     }
 
@@ -164,6 +199,31 @@ void* jms_vec_find(jms_vector* self, void* searchCriteria, bool (*comparer)(void
     return NULL;
 }
 
+JMS_BORROWED_PTR(jms_vector) jms_vec_where(jms_vector* self, void* searchCriteria, bool (*comparer)(void*, void*))
+{
+    jms_vector* results = jms_vec_init(self->elemSize);
+    
+    // Don't free the elements of the "slice" vector --
+    //  they are managed by the original vector.
+    results->doFreeElementsOnDelete = false;
+
+    for (int32_t i = 0; i <= self->lastElemIndex; i++)
+    {
+        void* actualElement = self->elements[i].data;
+        bool isEqual = comparer(searchCriteria, actualElement);
+
+        if (isEqual)
+        {
+            // Do not use the destructor found in the chunk, because when
+            //  the current vector is deleted, the elements would have been
+            //  free'd twice.
+            jms_vec_add(results, actualElement, NULL);
+        }
+    }
+
+    return results;
+}
+
 /**
  * @param index - the index to shift all of the elements into
  *      (i.e. the empty space left by deleting an element) 
@@ -175,7 +235,7 @@ static void jms_vec_shiftLeft(jms_vector* self, int32_t index)
         self->elements[i - 1].data = self->elements[i].data;
     }
 
-    // If we didn't delete this, we'd just end up with a duplicate
+    // If we didn't "null" this, we'd just end up with a duplicate
     //  reference to the pointer in maxElems - 2.
     self->elements[self->maxElems - 1].data = NULL;
 }
