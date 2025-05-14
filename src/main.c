@@ -7,9 +7,9 @@
 #include "jms_tests/jms_unitTests.h"
 #include "jms_lex.h"
 #include "jms_utils/jms_str.h"
-#
+#include "jms_parse/jms_astNode.h"
 
-//#define JMS_UNIT_TESTS_ON
+#define JMS_UNIT_TESTS_ON
 
 int run_program(int argc, char* argv[]);
 

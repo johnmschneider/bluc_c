@@ -12,7 +12,7 @@ void            jms_astNode_del     (jms_astNode* self);
 /**
  * Get the source code/text for this token.
  */
-JMS_BORROWED_PTR(const char)    jms_astNode_text        (jms_astNode* self);
+JMS_BORROWED_PTR(jms_str)       jms_astNode_getText     (jms_astNode* self);
 JMS_BORROWED_PTR(jms_vector)    jms_astNode_getChildren (jms_astNode* self);
 void                            jms_astNode_addChild    (jms_astNode* self, jms_astNode* child);
 

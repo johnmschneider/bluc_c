@@ -46,9 +46,9 @@ void jms_astNode_del(jms_astNode* self)
     free(self);
 }
 
-const char* jms_astNode_text(jms_astNode* self)
+JMS_BORROWED_PTR(jms_str) jms_astNode_getText(jms_astNode* self)
 {
-    return jms_str_cStr(self->text);
+    return self->text;
 }
 
 JMS_BORROWED_PTR(jms_vector)     jms_astNode_getChildren (jms_astNode* self)
