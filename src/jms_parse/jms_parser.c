@@ -3,6 +3,7 @@
 #include "jms_astNode.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include "jms_statements/jms_parser_class.h"
 
 struct jms_parser
 {
@@ -64,6 +65,9 @@ JMS_XFER_PTR(jms_parser)
     self->subParsers = jms_vec_init(sizeof(jms_parser*));
     {
         // TODO: add subparsers to the vector
+        jms_parser_class *subParser = jms_parser_class_init(self);
+
+        jms_vec_add(self->subParsers, subParser, jms_parser_class_del);
     }
 
     self->curTokenIndex = 0;

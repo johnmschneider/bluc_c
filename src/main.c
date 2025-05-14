@@ -8,7 +8,7 @@
 #include "jms_lex.h"
 #include "jms_utils/jms_str.h"
 
-#define JMS_UNIT_TESTS_ON
+//#define JMS_UNIT_TESTS_ON
 
 int run_program(int argc, char* argv[]);
 

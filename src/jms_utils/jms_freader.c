@@ -42,11 +42,12 @@ JMS_XFER_PTR(jms_str) jms_freader_readLines(
     FILE* file          = fopen(filePath, "r");
     char* buffer;
 
+    printf("\n[%s]: filePath == %s\n", __FUNCTION__, filePath);
     if (file == NULL)
     {
         fprintf(stderr, "[%s]: Error opening input "
             "file \"%s\". Please check that the path and file "
-            "exist.", __func__, filePath);
+            "exist.", __FUNCTION__, filePath);
         return NULL;
     }
     else
