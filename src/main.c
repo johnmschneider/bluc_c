@@ -7,6 +7,7 @@
 #include "jms_tests/jms_unitTests.h"
 #include "jms_lex.h"
 #include "jms_utils/jms_str.h"
+#
 
 //#define JMS_UNIT_TESTS_ON
 
@@ -82,9 +83,12 @@ int run_program(int argc, char* argv[])
     JMS_OWNED_PTR(jms_parser)
         parser = jms_parser_init(lexedTokens);
 
+    JMS_OWNED_PTR(jms_vector)
+        ast = NULL;
+
     if (parser != NULL)
     {
-        jms_parser_parse(parser);
+        ast = jms_parser_parse(parser);
         jms_parser_del(parser);
     }
     else
@@ -93,6 +97,34 @@ int run_program(int argc, char* argv[])
             __func__);
     }
 
+    printf("main: before ast print loop\n");
+    if (ast != NULL)
+    {
+        printf("main: ast size == %d\n",
+            jms_vec_elemCount(ast));
+        for (size_t i = 0; i < jms_vec_elemCount(ast); i++)
+        {
+            JMS_BORROWED_PTR(jms_astNode)
+                elem = jms_vec_get(ast, i);
+
+            // This will look much nicer in the self-hosted compiler:
+            //
+            //      var cStr = elem.getText().cStr();
+            JMS_BORROWED_PTR(char)
+                cStr = jms_str_cStr(jms_astNode_getText(elem));
+                
+            printf("main: ast node %zu: %s\n",
+                        i, cStr);
+        }
+    }
+    else
+    {
+        fprintf(stderr, "[%s]: Error creating AST\n",
+            __func__);
+    }
+    printf("main: after ast print loop\n");
+
+    jms_vec_del(ast);
     jms_vec_del(lexedTokens);
     jms_lex_del(lexer);
 
